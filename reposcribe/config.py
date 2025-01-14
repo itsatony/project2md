@@ -55,6 +55,7 @@ class Config:
     repo_url: Optional[str] = None
     target_dir: Path = Path.cwd()
     output_file: Path = Path('project_summary.md')
+    branch: str = "main"  # Add this line
 
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> 'Config':
@@ -125,6 +126,9 @@ class Config:
             self.include.files.extend(cli_args['include'])
         if cli_args.get('exclude'):
             self.exclude.files.extend(cli_args['exclude'])
+
+        if cli_args.get('branch'):
+            self.branch = cli_args['branch']
 
     def validate(self) -> None:
         """Validate configuration settings."""

@@ -1,6 +1,6 @@
 # reposcribe/git.py
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 import git
 from git.exc import GitCommandError, InvalidGitRepositoryError, NoSuchPathError
 import logging
@@ -57,17 +57,20 @@ class GitHandler:
             # Ensure parent directory exists
             target_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # Clone the repository
+            # Clone the repository with specific branch
             self._repo = git.Repo.clone_from(
                 self.config.repo_url,
                 target_path,
-                progress=self._progress_printer
+                progress=self._progress_printer,
+                branch=self.config.branch
             )
             
-            logger.info("Repository cloned successfully")
+            logger.info(f"Repository cloned successfully on branch {self.config.branch}")
             return target_path
 
         except GitCommandError as e:
+            if "Remote branch not found" in str(e):
+                raise GitError(f"Branch '{self.config.branch}' not found in repository")
             raise GitError(f"Git clone failed: {str(e)}")
         except Exception as e:
             raise GitError(f"Failed to clone repository: {str(e)}")
@@ -86,6 +89,19 @@ class GitHandler:
             
             try:
                 self._repo = git.Repo(path)
+                
+                # Only attempt branch switching if explicitly requested
+                if self.config.branch != "main" and self.config.branch != self.get_current_branch():
+                    try:
+                        # Check if branch exists
+                        if self.config.branch in [b.name for b in self._repo.refs]:
+                            self._repo.git.checkout(self.config.branch)
+                            logger.info(f"Switched to branch: {self.config.branch}")
+                        else:
+                            raise GitError(f"Branch '{self.config.branch}' not found")
+                    except GitCommandError as e:
+                        raise GitError(f"Failed to switch to branch '{self.config.branch}': {str(e)}")
+                        
             except InvalidGitRepositoryError:
                 raise GitError(
                     f"Directory is not a Git repository: {path}\n"
@@ -143,3 +159,13 @@ class GitHandler:
                 f"Clone progress: {percentage:.1f}% ({message})",
                 end="\r"
             )
+
+    def get_available_branches(self) -> List[str]:
+        """Get list of available branches."""
+        if not self._repo:
+            return []
+        try:
+            return [ref.name for ref in self._repo.references if not ref.name.startswith('origin/')]
+        except Exception as e:
+            logger.warning(f"Failed to get branches: {e}")
+            return []

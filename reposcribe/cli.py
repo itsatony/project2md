@@ -36,6 +36,10 @@ def setup_progress() -> Progress:
     help="Git repository URL to clone and process",
 )
 @click.option(
+    "--branch",
+    help="Specific branch to checkout (defaults to 'main')",
+)
+@click.option(
     "--target",
     "target_dir",
     type=click.Path(),
@@ -78,6 +82,7 @@ def main(
     include: List[str],
     exclude: List[str],
     force: bool,
+    branch: Optional[str],  # Add this parameter
 ) -> None:
     """
     Transform Git repositories into comprehensive Markdown documentation.
