@@ -2,17 +2,21 @@
 import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch
+import logging
 from rich.progress import Progress
+import shutil
 
 from reposcribe.walker import FileSystemWalker, WalkerError
 from reposcribe.config import Config, PathPatterns
 
 @pytest.fixture
 def mock_progress():
-    return Mock(spec=Progress)
-    
+    progress = Mock(spec=Progress)
+    progress.task_ids = [1]  # Mock task IDs
+    return progress
+
 @pytest.fixture
-def basic_config():
+def config():
     config = Config()
     config.include = PathPatterns(
         files=["*.py", "*.md"],
@@ -25,9 +29,8 @@ def basic_config():
     return config
 
 @pytest.fixture
-def walker(basic_config, mock_progress):
-    mock_progress.task_ids = [1]  # Mock task IDs
-    return FileSystemWalker(basic_config, mock_progress)
+def walker(config, mock_progress):
+    return FileSystemWalker(config, mock_progress)
 
 @pytest.fixture
 def sample_repo(tmp_path):
@@ -97,11 +100,37 @@ def test_read_file_encoding_detection(walker, tmp_path):
     content = "Hello, 世界!"
     test_file.write_text(content, encoding='utf-8')
     
-    assert walker.read_file(test_file) == content
-
-def test_is_binary_detection():
-    walker = FileSystemWalker(Config(), Mock())
+    # Need to explicitly set a reasonable max file size in config
+    walker.config.general.max_file_size_bytes = 1024 * 1024  # 1MB
     
+    # Test the actual reading
+    read_content = walker.read_file(test_file)
+    assert read_content == content
+
+def test_error_handling(walker, tmp_path, caplog):
+    non_existent = tmp_path / "does_not_exist"
+    caplog.set_level(logging.INFO)
+    
+    expected_error = f"Error collecting files: Directory does not exist: {non_existent}"
+    with pytest.raises(WalkerError, match=expected_error):
+        try:
+            walker.collect_files(non_existent)
+        except Exception as e:
+            print(f"Caught exception: {type(e).__name__}: {str(e)}")
+            print("Log messages during test:")
+            for record in caplog.records:
+                print(f"{record.levelname}: {record.message}")
+            raise
+
+@patch('pathlib.Path.iterdir')
+def test_permission_error_handling(mock_iterdir, walker, tmp_path):
+    mock_iterdir.side_effect = PermissionError()
+    
+    # Should not raise an error, just log warning and continue
+    files = walker.collect_files(tmp_path)
+    assert len(files) == 0
+
+def test_is_binary_detection(walker):
     # Test binary detection
     assert walker._is_binary(b'\x00\x01\x02\x03')
     assert walker._is_binary(b'\xff\xd8\xff')  # JPEG signature
@@ -111,16 +140,3 @@ def test_is_binary_detection():
     assert not walker._is_binary(b'Hello, World!')
     assert not walker._is_binary(b'{"key": "value"}')
     assert not walker._is_binary(b'# Python code')
-
-def test_error_handling(walker, tmp_path):
-    non_existent = tmp_path / "does_not_exist"
-    with pytest.raises(WalkerError):
-        walker.collect_files(non_existent)
-
-@patch('pathlib.Path.iterdir')
-def test_permission_error_handling(mock_iterdir, walker, tmp_path):
-    mock_iterdir.side_effect = PermissionError()
-    
-    # Should not raise an error, just log warning and continue
-    files = walker.collect_files(tmp_path)
-    assert len(files) == 0

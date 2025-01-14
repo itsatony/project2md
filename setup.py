@@ -8,7 +8,7 @@ setup(
     name="reposcribe",
     version="1.0.0",
     author="itsatony",
-    author_email="i@itsatony.com",
+    author_email="your.email@example.com",
     description="Transform Git repositories into comprehensive Markdown documentation",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -23,6 +23,8 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
     python_requires=">=3.8",
     install_requires=[
@@ -31,6 +33,8 @@ setup(
         "pyyaml>=6.0.0",
         "rich>=10.0.0",  # for progress bars and pretty output
         "pathspec>=0.9.0",  # for gitignore-style pattern matching
+        "chardet>=4.0.0",  # for file encoding detection
+        "humanize>=4.0.0",  # for human-readable sizes
     ],
     extras_require={
         "dev": [

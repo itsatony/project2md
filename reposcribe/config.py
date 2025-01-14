@@ -149,10 +149,15 @@ class Config:
     @staticmethod
     def _validate_patterns(patterns: List[str], context: str) -> None:
         """Validate glob patterns."""
+        import re
         for pattern in patterns:
             try:
-                from pathlib import Path
-                Path('.').glob(pattern)
+                if pattern.startswith('[') and not pattern.endswith(']'):
+                    raise ConfigError(f"Unmatched bracket in pattern")
+                if '**' in pattern and not ('/**/' in pattern or pattern.startswith('**/') or pattern.endswith('/**')):
+                    raise ConfigError(f"Invalid recursive glob pattern")
+                if re.search(r'[^\\][\[\]]', pattern):  # Unescaped brackets
+                    raise ConfigError(f"Invalid character class in pattern")
             except Exception as e:
                 raise ConfigError(f"Invalid pattern in {context}: {pattern} ({e})")
 
@@ -189,4 +194,3 @@ class Config:
 class ConfigError(Exception):
     """Custom exception for configuration errors."""
     pass
-  

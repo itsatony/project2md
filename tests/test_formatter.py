@@ -108,9 +108,9 @@ def test_stats_formatting(formatter, sample_stats):
     assert ".py: 2" in stats_md
 
 def test_error_handling(formatter, sample_files, sample_stats, tmp_path):
-    invalid_path = tmp_path / "nonexistent" / "output.md"
+    invalid_path = Path('/nonexistent/directory/output.md')
     
-    with pytest.raises(FormatterError):
+    with pytest.raises(FormatterError, match="Failed to generate output"):
         formatter.generate_output(tmp_path, sample_files, sample_stats, invalid_path)
 
 def test_readme_handling(formatter, sample_files, tmp_path):

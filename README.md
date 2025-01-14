@@ -9,7 +9,6 @@ RepoScribe is a command-line tool that creates a single Markdown file containing
 ## Features
 
 ### Core Features (v1.0.0)
-
 - Clone Git repositories using SSH authentication
 - Process existing local repositories
 - Intelligent file filtering with glob patterns
@@ -21,7 +20,6 @@ RepoScribe is a command-line tool that creates a single Markdown file containing
 - Branch information
 
 ### Planned Features
-
 - Additional output formats (JSON)
 - Enhanced tree visualization
 - Extended Git metadata support
@@ -51,7 +49,7 @@ reposcribe --repo=https://github.com/user/repo --config=.reposcribe.yml
 
 ### Command Line Arguments
 
-```bash
+```
 --repo        Repository URL (optional, defaults to current directory)
 --target      Clone target directory (optional, defaults to current directory)
 --output      Output file path (optional, defaults to project_summary.md)
@@ -122,6 +120,54 @@ project file- and folder tree:
 ```
 
 ## Development
+
+### Setting Up Development Environment
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/itsatony/reposcribe.git
+   cd reposcribe
+   ```
+
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows use: venv\Scripts\activate
+   ```
+
+3. Install development dependencies:
+   ```bash
+   pip install -e ".[dev]"
+   ```
+
+### Running Tests
+
+The project uses pytest for testing. To run the tests:
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with coverage report
+pytest --cov=reposcribe
+
+# Run tests verbosely
+pytest -v
+
+# Run specific test file
+pytest tests/test_config.py
+
+# Run tests matching specific pattern
+pytest -k "test_config"
+```
+
+### Test Structure
+Tests are organized in the `tests/` directory:
+- `test_config.py`: Configuration system tests
+- `test_git.py`: Git operations tests
+- `test_walker.py`: File system traversal tests
+- `test_formatter.py`: Output formatting tests
+- `test_stats.py`: Statistics collection tests
 
 ### Project Structure
 
