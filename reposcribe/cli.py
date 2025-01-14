@@ -36,6 +36,11 @@ def setup_progress() -> Progress:
     help="Git repository URL to clone and process",
 )
 @click.option(
+    "--root-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+    help="Root directory to process (defaults to current directory if no repo URL given)",
+)
+@click.option(
     "--branch",
     help="Specific branch to checkout (defaults to 'main')",
 )
@@ -76,26 +81,38 @@ def setup_progress() -> Progress:
 )
 def main(
     repo_url: Optional[str],
+    root_dir: Optional[str],
     target_dir: str,
     output_file: str,
     config_file: Optional[str],
     include: List[str],
     exclude: List[str],
     force: bool,
-    branch: Optional[str],  # Add this parameter
+    branch: Optional[str],
 ) -> None:
     """
-    Transform Git repositories into comprehensive Markdown documentation.
+    Transform Git repositories or local directories into comprehensive Markdown documentation.
     
-    If no repository URL is provided, processes the current directory.
+    If neither repository URL nor root directory is provided, processes the current directory.
     """
     console = Console()
     message_handler = MessageHandler(console)
     
     try:
+        # Determine working directory
+        working_dir = Path(root_dir) if root_dir else (
+            Path(target_dir) if repo_url else Path.cwd()
+        )
+
         # Load configuration
         message_handler.info("Loading configuration...")
-        config = load_configuration(config_file, locals())
+        config = load_configuration(config_file, {
+            **locals(),
+            'target_dir': str(working_dir)
+        })
+        
+        # Update target directory in config
+        config.target_dir = working_dir
         
         with setup_progress() as progress:
             # Initialize components
@@ -130,17 +147,28 @@ def main(
 def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
     """Load and merge configuration from file and CLI arguments."""
     try:
-        # Load from file if provided, otherwise use defaults
-        config = (
-            Config.from_yaml(config_file)
-            if config_file
-            else Config()
-        )
+        target_dir = Path(cli_args.get('target_dir', '.'))
+        default_config_path = target_dir / '.reposcribe.yml'
+        
+        # Create default config if none exists
+        if not config_file and not default_config_path.exists():
+            Config.create_default_config(default_config_path)
+            console.print(f"[green]Created default configuration file: {default_config_path}[/green]")
+            config_file = str(default_config_path)
+
+        # Load config
+        config = Config.from_yaml(config_file) if config_file else Config()
+        
+        # Apply smart defaults if no patterns configured
+        config.apply_smart_defaults()
+        
+        # Load .gitignore patterns
+        config._load_gitignore_patterns(target_dir)
         
         # Merge CLI arguments
         filtered_args = {
             k: v for k, v in cli_args.items()
-            if k in ['repo_url', 'target_dir', 'output_file', 'include', 'exclude']
+            if k in ['repo_url', 'target_dir', 'output_file', 'include', 'exclude', 'branch']
             and v is not None
         }
         config.merge_cli_args(filtered_args)
@@ -148,12 +176,6 @@ def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
         # Validate the final configuration
         config.validate()
         
-        # If we have CLI includes/excludes but no config file, save the configuration
-        if (cli_args.get('include') or cli_args.get('exclude')) and not config_file:
-            default_config_path = Path('.reposcribe.yml')
-            config.save(default_config_path)
-            console.print(f"[green]Created configuration file: {default_config_path}[/green]")
-            
         return config
         
     except Exception as e:
@@ -167,6 +189,7 @@ def process_repository(
     stats_collector: StatsCollector,
     progress: Progress,
     force: bool,
+    message_handler: MessageHandler = None,
 ) -> None:
     """Main processing workflow."""
     

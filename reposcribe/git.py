@@ -76,7 +76,7 @@ class GitHandler:
             raise GitError(f"Failed to clone repository: {str(e)}")
 
     def _validate_local_repository(self, force: bool = False) -> Path:
-        """Validate and prepare a local repository."""
+        """Validate and prepare a local repository or directory."""
         try:
             path = self.config.target_dir.resolve()
             
@@ -84,16 +84,16 @@ class GitHandler:
                 raise GitError(f"Directory does not exist: {path}")
             
             if force:
-                logger.warning("Force flag used - processing directory without Git validation")
+                logger.info("Force flag used - processing directory without Git validation")
                 return path
             
             try:
                 self._repo = git.Repo(path)
+                logger.info("Valid Git repository found")
                 
                 # Only attempt branch switching if explicitly requested
                 if self.config.branch != "main" and self.config.branch != self.get_current_branch():
                     try:
-                        # Check if branch exists
                         if self.config.branch in [b.name for b in self._repo.refs]:
                             self._repo.git.checkout(self.config.branch)
                             logger.info(f"Switched to branch: {self.config.branch}")
@@ -103,19 +103,15 @@ class GitHandler:
                         raise GitError(f"Failed to switch to branch '{self.config.branch}': {str(e)}")
                         
             except InvalidGitRepositoryError:
-                raise GitError(
-                    f"Directory is not a Git repository: {path}\n"
-                    "Use --force to process it anyway"
-                )
+                logger.info("Not a Git repository - processing as regular directory")
+                if not force:
+                    message = (
+                        f"Directory is not a Git repository: {path}\n"
+                        "Use --force to process it anyway"
+                    )
+                    raise GitError(message)
+                return path
             
-            if self._repo.bare:
-                raise GitError("Cannot process bare repositories")
-            
-            # Check for uncommitted changes
-            if self._repo.is_dirty():
-                logger.warning("Repository has uncommitted changes")
-            
-            logger.info(f"Using local repository at {path}")
             return path
 
         except Exception as e:

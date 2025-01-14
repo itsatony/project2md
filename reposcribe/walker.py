@@ -94,25 +94,21 @@ class FileSystemWalker:
         """Determine if a path should be processed based on patterns and rules."""
         try:
             rel_path = str(path.relative_to(root_path))
-            logger.debug(f"Checking path: {rel_path}")
-
-            # First check gitignore
-            if self._gitignore_spec and self._gitignore_spec.match_file(rel_path):
-                logger.debug(f"Path {rel_path} matched gitignore pattern")
+            
+            # Always exclude .git directory
+            if '.git' in path.parts:
                 return False
 
-            # Then check excludes
+            # Check if path matches exclude patterns
             if self._exclude_spec and self._exclude_spec.match_file(rel_path):
-                logger.debug(f"Path {rel_path} matched exclude pattern")
                 return False
 
-            # Finally check includes
+            # Check if path matches include patterns (if any are specified)
             if self._include_spec:
-                matches = self._include_spec.match_file(rel_path)
-                logger.debug(f"Path {rel_path} include pattern match: {matches}")
-                return matches
+                return bool(self._include_spec.match_file(rel_path))
 
             return True
+            
         except Exception as e:
             logger.error(f"Error checking path {path}: {e}")
             return False
@@ -171,16 +167,17 @@ class FileSystemWalker:
             if not self._should_read_file(file_path):
                 return None
 
-            content = file_path.read_bytes()
-            if len(content) > self.config.general.max_file_size_bytes:
+            # Check file size before reading
+            if file_path.stat().st_size > self.config.general.max_file_size_bytes:
                 logger.warning(f"Skipping {file_path}: exceeds size limit")
                 return None
 
-            # Try UTF-8 first
+            # Try reading as text
             try:
-                return content.decode('utf-8')
+                return file_path.read_text(encoding='utf-8')
             except UnicodeDecodeError:
                 # Fall back to detection
+                content = file_path.read_bytes()
                 detection = chardet.detect(content)
                 if detection['confidence'] >= 0.7:
                     try:
@@ -195,9 +192,12 @@ class FileSystemWalker:
 
     def _should_read_file(self, path: Path) -> bool:
         """Determine if a file should be read."""
-        return (
-            path.exists() and
-            path.is_file() and
-            path.suffix.lower() not in self.BINARY_EXTENSIONS and
-            path.stat().st_size > 0
-        )
+        try:
+            return (
+                path.exists() and
+                path.is_file() and
+                path.suffix.lower() not in self.BINARY_EXTENSIONS and
+                path.stat().st_size > 0
+            )
+        except Exception:
+            return False

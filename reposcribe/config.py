@@ -6,6 +6,7 @@ import yaml
 from enum import Enum
 import logging
 import re
+import pathspec
 
 logger = logging.getLogger(__name__)
 
@@ -13,12 +14,59 @@ class OutputFormat(Enum):
     MARKDOWN = "markdown"
     JSON = "json"
 
+DEFAULT_EXCLUDE_PATTERNS = {
+    'files': [
+        # Version control
+        '.git/**',
+        '.gitignore',
+        '.gitmodules',
+        '.gitattributes',
+        '.svn/**',
+        # Build artifacts
+        '**/dist/**',
+        '**/build/**',
+        '**/*.pyc',
+        '**/__pycache__/**',
+        '**/node_modules/**',
+        '**/target/**',
+        # IDE files
+        '**/.idea/**',
+        '**/.vscode/**',
+        '**/.vs/**',
+        # OS files
+        '**/.DS_Store',
+        '**/Thumbs.db',
+        # Large data files
+        '**/*.zip',
+        '**/*.tar.gz',
+        '**/*.rar',
+        '**/*.bin',
+        '**/*.exe',
+        '**/*.dll',
+        '**/*.so',
+        '**/*.dylib',
+        # Log files
+        '**/logs/**',
+        '**/*.log',
+    ],
+    'dirs': [
+        '.git',
+        'node_modules',
+        '__pycache__',
+        'dist',
+        'build',
+        'target',
+        'coverage',
+    ]
+}
+
 @dataclass
 class GeneralConfig:
     max_depth: int = 10
-    max_file_size: str = "1MB"  # Will be converted to bytes during validation
+    max_file_size: str = "1MB"
     stats_in_output: bool = True
     collapse_empty_dirs: bool = True
+    max_file_size_bytes: int = field(init=False)
 
     def __post_init__(self):
         self.max_file_size_bytes = self._parse_size(self.max_file_size)
@@ -112,6 +160,55 @@ class Config:
         except Exception as e:
             raise ConfigError(f"Error parsing config data: {e}")
 
+    @classmethod
+    def create_default_config(cls, path: Path) -> None:
+        """Create a default configuration file if none exists."""
+        if path.exists():
+            return
+            
+        config_dict = {
+            'general': {
+                'max_depth': 10,
+                'max_file_size': '1MB',
+                'stats_in_output': True,
+                'collapse_empty_dirs': True
+            },
+            'output': {
+                'format': 'markdown',
+                'stats': True
+            },
+            'exclude': DEFAULT_EXCLUDE_PATTERNS,
+            'include': {
+                'files': ['**/*.md', '**/*.py', '**/*.js', '**/*.ts', '**/*.java', '**/*.c', '**/*.cpp', '**/*.h'],
+                'dirs': []
+            }
+        }
+        
+        with open(path, 'w') as f:
+            yaml.safe_dump(config_dict, f, default_flow_style=False)
+            
+    def _load_gitignore_patterns(self, repo_path: Path) -> None:
+        """Load patterns from .gitignore file if it exists."""
+        gitignore_path = repo_path / '.gitignore'
+        if not gitignore_path.exists():
+            return
+            
+        with open(gitignore_path) as f:
+            gitignore_patterns = []
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    gitignore_patterns.append(line)
+                    
+        # Add patterns from .gitignore to exclude patterns
+        self.exclude.files.extend(gitignore_patterns)
+        
+    def apply_smart_defaults(self) -> None:
+        """Apply smart defaults if no patterns are configured."""
+        if not self.exclude.files and not self.exclude.dirs:
+            self.exclude.files.extend(DEFAULT_EXCLUDE_PATTERNS['files'])
+            self.exclude.dirs.extend(DEFAULT_EXCLUDE_PATTERNS['dirs'])
+
     def merge_cli_args(self, cli_args: Dict) -> None:
         """Merge CLI arguments into config with CLI taking precedence."""
         if cli_args.get('repo_url'):
@@ -153,15 +250,18 @@ class Config:
     @staticmethod
     def _validate_patterns(patterns: List[str], context: str) -> None:
         """Validate glob patterns."""
-        import re
         for pattern in patterns:
+            # Basic syntax validation
+            if pattern.count('[') != pattern.count(']'):
+                raise ConfigError(f"Invalid pattern in {context}: {pattern} (Unmatched brackets)")
+            if pattern.count('{') != pattern.count('}'):
+                raise ConfigError(f"Invalid pattern in {context}: {pattern} (Unmatched braces)")
+            if '\\' in pattern and not any(c in pattern for c in '*?[]{}'):
+                raise ConfigError(f"Invalid pattern in {context}: {pattern} (Invalid escape character)")
+
             try:
-                if pattern.startswith('[') and not pattern.endswith(']'):
-                    raise ConfigError(f"Unmatched bracket in pattern")
-                if '**' in pattern and not ('/**/' in pattern or pattern.startswith('**/') or pattern.endswith('/**')):
-                    raise ConfigError(f"Invalid recursive glob pattern")
-                if re.search(r'[^\\][\[\]]', pattern):  # Unescaped brackets
-                    raise ConfigError(f"Invalid character class in pattern")
+                # Additional validation using pathspec
+                pathspec.PathSpec.from_lines('gitwildmatch', [pattern])
             except Exception as e:
                 raise ConfigError(f"Invalid pattern in {context}: {pattern} ({e})")
 
