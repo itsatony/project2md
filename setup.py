@@ -5,14 +5,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="reposcribe",
+    name="project2md",
     version="1.0.0",
     author="itsatony",
-    author_email="your.email@example.com",
+    author_email="i@itsatony.com",
     description="Transform Git repositories into comprehensive Markdown documentation",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/itsatony/reposcribe",
+    url="https://github.com/itsatony/project2md",
     packages=find_packages(exclude=["tests*"]),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -48,7 +48,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "reposcribe=reposcribe.cli:main",
+            "project2md=project2md.cli:main",
         ],
     },
 )

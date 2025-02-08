@@ -1,4 +1,4 @@
-# RepoScribe
+# Project2MD
 
 Transform Git repositories into comprehensive Markdown documentation with intelligent file filtering and structure preservation.
 
