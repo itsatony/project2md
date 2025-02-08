@@ -11,6 +11,7 @@ from .config import Config, ConfigError, OutputFormat
 from .git import GitHandler
 from .walker import FileSystemWalker
 from .formatters.factory import get_formatter  # Single formatter import
+from .formatters.base import BaseFormatter
 from .stats import StatsCollector
 from .messages import MessageHandler
 
@@ -244,12 +245,23 @@ def process_repository(
     config: Config,
     git_handler: GitHandler,
     walker: FileSystemWalker,
+    formatter: BaseFormatter,
     stats_collector: StatsCollector,
     progress: Progress,
     force: bool,
-    message_handler: MessageHandler = None,
+    message_handler: MessageHandler
 ) -> None:
-    """Main processing workflow."""
+    """
+    Process a repository and generate documentation.
+    
+    Args:
+        root_dir: Path to the repository root directory
+        config: Configuration object
+        formatter: Formatter instance to use
+        output_path: Path where to save the output
+        repo_url: Optional repository URL to clone
+        branch: Optional branch to process
+    """
     
     # Setup progress tracking
     clone_task = progress.add_task("Cloning repository...", total=1, visible=bool(config.repo_url))
@@ -285,8 +297,8 @@ def process_repository(
         stats = stats_collector.get_stats(repo_info.get('branch', 'unknown'))
         progress.update(stats_task, completed=1)
             
-        # Get appropriate formatter
-        formatter = get_formatter(config)
+        # Get appropriate formatter using factory
+        formatter = get_formatter(config)  # This will now properly handle the format
         
         # Generate output
         progress.update(format_task, total=1, completed=0)

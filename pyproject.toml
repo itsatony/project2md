@@ -1,6 +1,6 @@
 [project]
 name = "project2md"
-version = "1.1.0"
+version = "1.2.0"
 description = "Transform Dirs or Git repositories into comprehensive Markdown documentation with intelligent file filtering and structure preservation."
 authors = [
     {name = "itsatony",email = "i@itsatony.com"}

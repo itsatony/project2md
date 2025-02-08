@@ -15,7 +15,8 @@ def test_process_json_format(tmp_path):
         'process',
         '--root-dir', str(tmp_path),
         '--format', 'json',
-        '--output', str(tmp_path / 'output.json')
+        '--output', str(tmp_path / 'output.json'),
+        '--force'  # Add force flag to process non-git directory
     ])
     
     if result.exit_code != 0:
@@ -44,7 +45,8 @@ def test_process_yaml_format(tmp_path):
         'process',
         '--root-dir', str(tmp_path),
         '--format', 'yaml',
-        '--output', str(tmp_path / 'output.yaml')
+        '--output', str(tmp_path / 'output.yaml'),
+        '--force'  # Add force flag to process non-git directory
     ])
     
     if result.exit_code != 0:

@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="project2md",
-    version="1.0.0",
+    version="1.2.0",
     author="itsatony",
     author_email="i@itsatony.com",
     description="Transform Git repositories into comprehensive Markdown documentation",

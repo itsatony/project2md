@@ -554,6 +554,10 @@ class Config:
         if cli_args.get('branch'):
             self.branch = cli_args['branch']
 
+        if 'format' in cli_args:
+            # Ensure format is properly set as enum
+            self.output.format = OutputFormat(cli_args['format'].lower())
+
     def validate(self) -> None:
         """Validate configuration settings."""
         if self.general.max_depth < 1:
