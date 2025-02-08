@@ -127,24 +127,23 @@ project file- and folder tree:
 
 ### Setting Up Development Environment
 
-1. Clone the repository:
+1. Install Poetry (if not already installed):
 
    ```bash
-   git clone https://github.com/itsatony/reposcribe.git
-   cd reposcribe
+   curl -sSL https://install.python-poetry.org | python3 -
    ```
 
-2. Create and activate a virtual environment:
+2. Clone the repository:
 
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows use: venv\Scripts\activate
+   git clone https://github.com/itsatony/project2md.git
+   cd project2md
    ```
 
-3. Install development dependencies:
+3. Install dependencies with Poetry:
 
    ```bash
-   pip install -e ".[dev]"
+   poetry install
    ```
 
 ### Running Tests
@@ -153,19 +152,19 @@ The project uses pytest for testing. To run the tests:
 
 ```bash
 # Run all tests
-pytest
+poetry run pytest
 
 # Run tests with coverage report
-pytest --cov=reposcribe
+poetry run pytest --cov=project2md
 
 # Run tests verbosely
-pytest -v
+poetry run pytest -v
 
 # Run specific test file
-pytest tests/test_config.py
+poetry run pytest tests/test_config.py
 
 # Run tests matching specific pattern
-pytest -k "test_config"
+poetry run pytest -k "test_config"
 ```
 
 ### Test Structure

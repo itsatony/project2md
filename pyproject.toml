@@ -1,0 +1,25 @@
+[project]
+name = "project2md"
+version = "1.0.0"
+description = "Transform Dirs or Git repositories into comprehensive Markdown documentation with intelligent file filtering and structure preservation."
+authors = [
+    {name = "itsatony",email = "i@itsatony.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml (>=6.0.2,<7.0.0)",
+    "pathspec (>=0.12.1,<0.13.0)",
+    "click (>=8.1.8,<9.0.0)",
+    "rich (>=13.9.4,<14.0.0)",
+    "gitpython (>=3.1.44,<4.0.0)",
+    "humanize (>=4.11.0,<5.0.0)",
+    "pylance (>=0.23.0,<0.24.0)",
+    "chardet (>=5.2.0,<6.0.0)",
+    "setuptools (>=75.8.0,<76.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

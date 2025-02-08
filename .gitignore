@@ -170,4 +170,8 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-project_summary.md 
+project_summary.md
+
+# Poetry
+poetry.lock
+dist/
