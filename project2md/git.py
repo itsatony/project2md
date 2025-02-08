@@ -1,4 +1,4 @@
-# reposcribe/git.py
+# project2md/git.py
 from pathlib import Path
 from typing import Optional, List
 import git
@@ -25,6 +25,19 @@ class GitHandler:
         self.progress = progress
         self._repo: Optional[git.Repo] = None
         self._temp_dir: Optional[Path] = None
+
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit."""
+        self._cleanup_temp_dir()
+        return False  # Don't suppress exceptions
+
+    def cleanup(self):
+        """Explicit cleanup method."""
+        self._cleanup_temp_dir()
 
     def prepare_repository(self, force: bool = False) -> Path:
         """
@@ -53,8 +66,8 @@ class GitHandler:
         try:
             logger.info(f"Cloning repository from {self.config.repo_url}")
             
-            # Create a temporary directory
-            self._temp_dir = Path(tempfile.mkdtemp(prefix='reposcribe_'))
+            # Always use a temporary directory for remote repositories
+            self._temp_dir = Path(tempfile.mkdtemp(prefix='project2md_'))
             logger.debug(f"Created temporary directory: {self._temp_dir}")
             
             # Clone the repository with specific branch

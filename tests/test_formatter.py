@@ -1,8 +1,8 @@
 # tests/test_formatter.py
 import pytest
 from pathlib import Path
-from reposcribe.formatter import MarkdownFormatter, FormatterError
-from reposcribe.config import Config, OutputFormat
+from project2md.formatter import MarkdownFormatter, FormatterError
+from project2md.config import Config, OutputFormat
 import json
 
 @pytest.fixture

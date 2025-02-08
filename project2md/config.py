@@ -1,4 +1,4 @@
-# reposcribe/config.py
+# project2md/config.py
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Dict, Union

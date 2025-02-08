@@ -1,7 +1,7 @@
 # tests/test_config.py
 import pytest
 from pathlib import Path
-from reposcribe.config import Config, ConfigError, OutputFormat, GeneralConfig
+from project2md.config import Config, ConfigError, OutputFormat, GeneralConfig
 
 @pytest.fixture
 def sample_config_dict():
@@ -68,7 +68,7 @@ def test_invalid_patterns():
 
 @pytest.fixture
 def temp_config_file(tmp_path):
-    config_path = tmp_path / '.reposcribe.yml'
+    config_path = tmp_path / '.project2md.yml'
     return config_path
 
 def test_save_and_load_config(temp_config_file, sample_config_dict):

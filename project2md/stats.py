@@ -1,4 +1,4 @@
-# reposcribe/stats.py
+# project2md/stats.py
 from pathlib import Path
 from typing import Dict, Optional, Set
 import logging

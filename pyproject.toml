@@ -19,6 +19,34 @@ dependencies = [
     "setuptools (>=75.8.0,<76.0.0)"
 ]
 
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.4.0"
+pytest-cov = ">=4.1.0"
+black = ">=23.7.0"
+isort = ">=5.12.0"
+pylint = ">=2.17.5"
+
+[tool.poetry.scripts]
+project2md = "project2md.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v"
+
+[tool.coverage.run]
+source = ["project2md"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

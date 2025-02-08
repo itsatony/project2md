@@ -1,7 +1,7 @@
 # tests/test_stats.py
 import pytest
 from pathlib import Path
-from reposcribe.stats import StatsCollector
+from project2md.stats import StatsCollector
 
 @pytest.fixture
 def stats_collector():

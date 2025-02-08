@@ -4,7 +4,7 @@ Transform Git repositories into comprehensive Markdown documentation with intell
 
 ## Overview
 
-RepoScribe is a command-line tool that creates a single Markdown file containing the complete structure and content of a Git repository. It's designed to prepare repository content for Large Language Model (LLM) analysis while maintaining project structure and context.
+project2md is a command-line tool that creates a single Markdown file containing the complete structure and content of a Git repository. It's designed to prepare repository content for Large Language Model (LLM) analysis while maintaining project structure and context.
 
 ## Features
 
@@ -31,7 +31,7 @@ RepoScribe is a command-line tool that creates a single Markdown file containing
 ## Installation
 
 ```bash
-pip install reposcribe
+pip install project2md
 ```
 
 ## Usage
@@ -40,13 +40,13 @@ pip install reposcribe
 
 ```bash
 # Process a remote repository
-reposcribe --repo=https://github.com/user/repo --output=summary.md
+project2md --repo=https://github.com/user/repo --output=summary.md
 
 # Process current directory
-reposcribe --output=summary.md
+project2md --output=summary.md
 
 # Use specific configuration
-reposcribe --repo=https://github.com/user/repo --config=.reposcribe.yml
+project2md --repo=https://github.com/user/repo --config=.project2md.yml
 ```
 
 ### Command Line Arguments
@@ -55,12 +55,12 @@ reposcribe --repo=https://github.com/user/repo --config=.reposcribe.yml
 --repo        Repository URL (optional, defaults to current directory)
 --target      Clone target directory (optional, defaults to current directory)
 --output      Output file path (optional, defaults to project_summary.md)
---config      Configuration file path (optional, defaults to .reposcribe.yml)
+--config      Configuration file path (optional, defaults to .project2md.yml)
 --include     Include patterns (can be specified multiple times)
 --exclude     Exclude patterns (can be specified multiple times)
 ```
 
-### Configuration File (.reposcribe.yml)
+### Configuration File (.project2md.yml)
 
 ```yaml
 general:
@@ -180,7 +180,7 @@ Tests are organized in the `tests/` directory:
 ### Project Structure
 
 ```tree
-reposcribe/
+project2md/
 ├── __init__.py          # Package initialization
 ├── cli.py              # Command-line interface
 ├── config.py           # Configuration handling

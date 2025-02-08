@@ -6,8 +6,8 @@ import logging
 from rich.progress import Progress
 import shutil
 
-from reposcribe.walker import FileSystemWalker, WalkerError
-from reposcribe.config import Config, PathPatterns
+from project2md.walker import FileSystemWalker, WalkerError
+from project2md.config import Config, PathPatterns
 
 @pytest.fixture
 def mock_progress():

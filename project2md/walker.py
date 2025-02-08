@@ -1,4 +1,4 @@
-# reposcribe/walker.py
+# project2md/walker.py
 from pathlib import Path
 from typing import List, Set, Optional, Dict
 import logging

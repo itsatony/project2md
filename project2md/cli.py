@@ -1,4 +1,4 @@
-# reposcribe/cli.py
+# project2md/cli.py
 import sys
 from pathlib import Path
 from typing import List, Optional
@@ -159,23 +159,26 @@ def main(
 def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
     """Load and merge configuration from file and CLI arguments."""
     try:
-        target_dir = Path(cli_args.get('target_dir', '.'))
-        default_config_path = target_dir / '.reposcribe.yml'
+        config = None
         
-        # Create default config if none exists
-        if not config_file and not default_config_path.exists():
-            Config.create_default_config(default_config_path)
-            console.print(f"[green]Created default configuration file: {default_config_path}[/green]")
-            config_file = str(default_config_path)
+        # If config file is explicitly specified, use it
+        if config_file:
+            config = Config.from_yaml(config_file)
+        else:
+            # Look for config in current working directory
+            cwd_config = Path.cwd() / '.project2md.yml'
+            if cwd_config.exists():
+                config = Config.from_yaml(cwd_config)
+            else:
+                # Don't create config file, just use defaults
+                config = Config()
 
-        # Load config
-        config = Config.from_yaml(config_file) if config_file else Config()
-        
         # Apply smart defaults if no patterns configured
         config.apply_smart_defaults()
         
-        # Load .gitignore patterns
-        config._load_gitignore_patterns(target_dir)
+        # Load .gitignore patterns only for local directories
+        if not cli_args.get('repo_url'):
+            config._load_gitignore_patterns(Path.cwd())
         
         # Merge CLI arguments
         filtered_args = {
