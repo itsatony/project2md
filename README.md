@@ -25,8 +25,6 @@ project2md is a command-line tool that creates a single Markdown file containing
 - Additional output formats (JSON)
 - Enhanced tree visualization
 - Extended Git metadata support
-- Additional authentication methods
-- Git history integration
 
 ## Installation
 
