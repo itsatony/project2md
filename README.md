@@ -9,6 +9,7 @@ RepoScribe is a command-line tool that creates a single Markdown file containing
 ## Features
 
 ### Core Features (v1.0.0)
+
 - Clone Git repositories using SSH authentication
 - Process existing local repositories
 - Intelligent file filtering with glob patterns
@@ -20,6 +21,7 @@ RepoScribe is a command-line tool that creates a single Markdown file containing
 - Branch information
 
 ### Planned Features
+
 - Additional output formats (JSON)
 - Enhanced tree visualization
 - Extended Git metadata support
@@ -49,7 +51,7 @@ reposcribe --repo=https://github.com/user/repo --config=.reposcribe.yml
 
 ### Command Line Arguments
 
-```
+```text
 --repo        Repository URL (optional, defaults to current directory)
 --target      Clone target directory (optional, defaults to current directory)
 --output      Output file path (optional, defaults to project_summary.md)
@@ -108,34 +110,39 @@ project file- and folder tree:
 ```
 
 ## Project Statistics
+
 {statistics if enabled}
 
 ## File Contents
 
 ### filepath repoRoot/file1
+
 {file1 content}
 
 ### filepath repoRoot/dir/file2
+
 {file2 content}
-```
 
 ## Development
 
 ### Setting Up Development Environment
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/itsatony/reposcribe.git
    cd reposcribe
    ```
 
 2. Create and activate a virtual environment:
+
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows use: venv\Scripts\activate
    ```
 
 3. Install development dependencies:
+
    ```bash
    pip install -e ".[dev]"
    ```
@@ -162,7 +169,9 @@ pytest -k "test_config"
 ```
 
 ### Test Structure
+
 Tests are organized in the `tests/` directory:
+
 - `test_config.py`: Configuration system tests
 - `test_git.py`: Git operations tests
 - `test_walker.py`: File system traversal tests
@@ -171,7 +180,7 @@ Tests are organized in the `tests/` directory:
 
 ### Project Structure
 
-```
+```tree
 reposcribe/
 ├── __init__.py          # Package initialization
 ├── cli.py              # Command-line interface
@@ -186,24 +195,28 @@ reposcribe/
 ### Component Responsibilities
 
 #### CLI (cli.py)
+
 - Parse command-line arguments
 - Initialize configuration
 - Orchestrate overall process flow
 - Handle user interaction (progress bar)
 
 #### Configuration (config.py)
+
 - Parse YAML configuration
 - Merge CLI arguments with config file
 - Validate configuration
 - Provide unified config interface
 
 #### Git Operations (git.py)
+
 - Clone repositories
 - Validate repository status
 - Extract branch information
 - Handle SSH authentication
 
 #### File System Walker (walker.py)
+
 - Traverse directory structure
 - Apply include/exclude patterns
 - Handle file size limits
@@ -211,18 +224,21 @@ reposcribe/
 - Detect binary files
 
 #### Formatter (formatter.py)
+
 - Generate Markdown output
 - Create directory tree visualization
 - Format statistics
 - Handle alternative output formats
 
 #### Statistics (stats.py)
+
 - Collect file and directory statistics
 - Calculate size metrics
 - Track file types
 - Generate statistical summaries
 
 #### Utilities (utils.py)
+
 - Shared helper functions
 - Error handling utilities
 - Progress tracking
@@ -231,6 +247,7 @@ reposcribe/
 ### Error Handling
 
 The tool implements comprehensive error handling:
+
 - Clear error messages for configuration issues
 - Graceful handling of inaccessible files
 - Recovery from non-critical errors

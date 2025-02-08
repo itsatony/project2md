@@ -5,6 +5,9 @@ import git
 from git.exc import GitCommandError, InvalidGitRepositoryError, NoSuchPathError
 import logging
 from rich.progress import Progress
+import tempfile
+import shutil
+import os
 
 from .config import Config
 
@@ -21,6 +24,7 @@ class GitHandler:
         self.config = config
         self.progress = progress
         self._repo: Optional[git.Repo] = None
+        self._temp_dir: Optional[Path] = None
 
     def prepare_repository(self, force: bool = False) -> Path:
         """
@@ -45,35 +49,46 @@ class GitHandler:
             raise GitError(f"Failed to prepare repository: {str(e)}")
 
     def _clone_repository(self) -> Path:
-        """Clone a remote repository."""
-        target_path = self.config.target_dir
+        """Clone a remote repository to a temporary directory."""
         try:
-            logger.info(f"Cloning repository from {self.config.repo_url} to {target_path}")
+            logger.info(f"Cloning repository from {self.config.repo_url}")
             
-            # Handle existing directory
-            if target_path.exists() and any(target_path.iterdir()):
-                raise GitError(f"Target directory {target_path} exists and is not empty")
-            
-            # Ensure parent directory exists
-            target_path.parent.mkdir(parents=True, exist_ok=True)
+            # Create a temporary directory
+            self._temp_dir = Path(tempfile.mkdtemp(prefix='reposcribe_'))
+            logger.debug(f"Created temporary directory: {self._temp_dir}")
             
             # Clone the repository with specific branch
             self._repo = git.Repo.clone_from(
                 self.config.repo_url,
-                target_path,
+                self._temp_dir,
                 progress=self._progress_printer,
                 branch=self.config.branch
             )
             
             logger.info(f"Repository cloned successfully on branch {self.config.branch}")
-            return target_path
+            return self._temp_dir
 
         except GitCommandError as e:
+            self._cleanup_temp_dir()
             if "Remote branch not found" in str(e):
                 raise GitError(f"Branch '{self.config.branch}' not found in repository")
             raise GitError(f"Git clone failed: {str(e)}")
         except Exception as e:
+            self._cleanup_temp_dir()
             raise GitError(f"Failed to clone repository: {str(e)}")
+
+    def _cleanup_temp_dir(self) -> None:
+        """Clean up temporary directory if it exists."""
+        if self._temp_dir and self._temp_dir.exists():
+            try:
+                shutil.rmtree(self._temp_dir)
+                logger.debug(f"Cleaned up temporary directory: {self._temp_dir}")
+            except Exception as e:
+                logger.warning(f"Failed to clean up temporary directory {self._temp_dir}: {e}")
+
+    def __del__(self):
+        """Ensure temporary directory is cleaned up."""
+        self._cleanup_temp_dir()
 
     def _validate_local_repository(self, force: bool = False) -> Path:
         """Validate and prepare a local repository or directory."""

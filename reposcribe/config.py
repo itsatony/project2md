@@ -14,51 +14,305 @@ class OutputFormat(Enum):
     MARKDOWN = "markdown"
     JSON = "json"
 
+DEFAULT_INCLUDE_PATTERNS = {
+    'files': [
+        '**/*.py',         # Python
+        '**/*.js',         # JavaScript
+        '**/*.ts',         # TypeScript
+        '**/*.java',       # Java
+        '**/*.c',          # C
+        '**/*.h',          # C header
+        '**/*.cpp',        # C++
+        '**/*.hpp',        # C++ header
+        '**/*.cs',         # C#
+        '**/*.rb',         # Ruby
+        '**/*.php',        # PHP
+        '**/*.go',         # Go
+        '**/*.rs',         # Rust
+        '**/*.swift',      # Swift
+        '**/*.kt',         # Kotlin
+        '**/*.m',          # Objective-C
+        '**/*.mm',         # Objective-C++
+        '**/*.scala',      # Scala
+        '**/*.hs',         # Haskell
+        '**/*.erl',        # Erlang
+        '**/*.ex',         # Elixir
+        '**/*.exs',        # Elixir script
+        '**/*.sh',         # Shell script
+        '**/*.bash',       # Bash script
+        '**/*.zsh',        # Zsh script
+        '**/*.ps1',        # PowerShell
+        '**/*.r',          # R
+        '**/*.jl',         # Julia
+        '**/*.clj',        # Clojure
+        '**/*.cljs',       # ClojureScript
+        '**/*.cljc',       # Clojure common/shared
+        '**/*.sql',        # SQL
+        '**/*.pl',         # Perl
+        '**/*.pm',         # Perl module
+        '**/*.asm',        # Assembly
+        '**/*.s',          # Assembly
+        '**/*.v',          # Verilog
+        '**/*.sv',         # SystemVerilog
+        '**/*.vhd',        # VHDL
+        '**/*.dart',       # Dart
+        '**/*.coffee',     # CoffeeScript
+        '**/*.lisp',       # Lisp
+        '**/*.scm',        # Scheme
+        '**/*.rkt',        # Racket
+        '**/*.ml',         # OCaml
+        '**/*.fs',         # F#
+        '**/*.vb',         # Visual Basic
+        '**/*.vba',        # Visual Basic for Applications
+        '**/*.fsx',        # F# script
+        '**/*.tex',        # LaTeX
+        '**/*.bib',        # BibTeX
+        '**/*.md',         # Markdown
+        '**/*.rst',        # reStructuredText
+        '**/*.txt',        # Plain text
+        '**/*.json',       # JSON
+        '**/*.yml',        # YAML
+        '**/*.yaml',       # YAML
+        '**/*.xml',        # XML
+        '**/*.html',       # HTML
+        '**/*.htm',        # HTML
+        '**/*.css',        # CSS
+        '**/*.scss',       # SCSS/Sass
+        '**/*.less',       # Less
+        '**/*.ini',        # INI configuration
+        '**/*.conf',       # Config file
+        '**/*.cfg',        # Config file
+        '**/*.toml',       # TOML
+        '**/*.properties', # Java properties
+        '**/*.gradle',     # Gradle
+        '**/*.gradle.kts', # Gradle Kotlin DSL
+        '**/*.mk',         # Makefile fragment
+        '**/Makefile',     # Makefile
+        '**/*.bat',        # Batch file (Windows)
+        '**/*.cmd',        # Batch file (Windows)
+        '**/*.cmake',      # CMake
+        '**/*.rake',       # Rake (Ruby)
+        '**/*.gemspec',    # Ruby gemspec
+        '**/Dockerfile',   # Dockerfile
+        '**/*.dockerfile', # Alternative Dockerfile pattern
+        '**/*.psd1',       # PowerShell data file
+        '**/*.nuspec',     # NuGet specification
+        '**/*.csproj',     # C# project file
+        '**/*.vbproj',     # VB.NET project file
+        '**/*.fsproj',     # F# project file
+        '**/*.xproj',      # .NET project file (legacy)
+        '**/*.sln',        # Visual Studio solution
+        '**/*.cabal',      # Haskell Cabal
+        '**/*.opam',       # OCaml OPAM
+        '**/*.d',          # D language
+        '**/*.nim',        # Nim
+        '**/*.elm',        # Elm
+        '**/*.sbt',        # SBT (Scala build tool)
+        '**/*.proto',      # Protocol Buffers
+        '**/*.hbs',        # Handlebars template
+        '**/*.ejs',        # Embedded JavaScript template
+        '**/*.mjs',        # JavaScript module (ESM)
+        '**/*.cjs',        # CommonJS module
+        '**/.editorconfig',# EditorConfig file
+        '**/.gitignore',   # Git ignore file
+        '**/.dockerignore',# Docker ignore file
+
+        # Additional entries:
+        '**/*.ipynb',          # Jupyter Notebook (JSON-based)
+        '**/*.lua',            # Lua scripts
+        '**/*.f',              # Fortran fixed-format source
+        '**/*.for',            # Fortran source (fixed/free)
+        '**/*.f90',            # Fortran free-format source
+        '**/CMakeLists.txt',   # CMake build scripts (no extension)
+        '**/Vagrantfile',      # Vagrant configuration
+        '**/Rakefile',         # Rake build file (no extension)
+        '**/Gemfile',          # Ruby Gemfile
+        '**/Gemfile.lock',     # Ruby Gemfile lock
+        '**/Pipfile',          # Python Pipfile for pipenv
+        '**/Pipfile.lock',     # Python Pipfile lock
+        '**/requirements.txt', # Python dependencies list
+        '**/Jenkinsfile',      # Jenkins pipeline
+        '**/Procfile',         # Procfile for deployment (e.g., Heroku)
+        '**/BUILD',            # Bazel build file (no extension)
+        '**/BUILD.bazel',      # Bazel build file (alternative naming)
+        '**/WORKSPACE',        # Bazel workspace file
+        '**/*.csx',            # C# script files
+        '**/*.tsx',            # TypeScript React files
+        '**/*.jsx',            # React JavaScript files
+        '**/.npmignore',       # npm ignore file
+        '**/Docker-compose.yml' # Docker Compose file
+    ],
+    'dirs': []
+}
+
 DEFAULT_EXCLUDE_PATTERNS = {
     'files': [
-        # Version control
+        # Version control metadata
         '.git/**',
         '.gitignore',
         '.gitmodules',
         '.gitattributes',
+        '.hg/**',
+        '.hgignore',
+        '.bzr/**',
+        '.bzrignore',
         '.svn/**',
-        # Build artifacts
+
+        # Build artifacts and output directories (also in dirs)
         '**/dist/**',
         '**/build/**',
-        '**/*.pyc',
-        '**/__pycache__/**',
-        '**/node_modules/**',
         '**/target/**',
-        # IDE files
+        '**/coverage/**',
+
+        # Python cache and compiled files
+        '**/__pycache__/**',
+        '**/*.pyc',
+        '**/*.pyo',
+        '**/*.pyd',
+
+        # Node.js artifacts
+        '**/node_modules/**',
+
+        # IDE and editor files
         '**/.idea/**',
         '**/.vscode/**',
         '**/.vs/**',
-        # OS files
+        '**/*.sublime-workspace',
+        '**/*.sublime-project',
+
+        # Operating system and miscellaneous files
         '**/.DS_Store',
+        '**/desktop.ini',
         '**/Thumbs.db',
-        # Large data files
-        '**/*.zip',
-        '**/*.tar.gz',
-        '**/*.rar',
-        '**/*.bin',
+        '**/ehthumbs.db',
+
+        # Temporary and backup files
+        '**/*.tmp',
+        '**/*.temp',
+        '**/*.swp',
+        '**/*~',
+        '**/*.bak',
+        '**/*.old',
+        '**/*.orig',
+
+        # Jupyter Notebook checkpoints
+        '**/.ipynb_checkpoints/**',
+
+        # Cache directories and files
+        '**/.cache/**',
+        '**/.sass-cache/**',
+
+        # Log files and error dumps
+        '**/logs/**',
+        '**/*.log',
+        '**/npm-debug.log',
+        '**/yarn-debug.log',
+        '**/yarn-error.log',
+
+        # Compiled binaries and libraries
         '**/*.exe',
         '**/*.dll',
         '**/*.so',
         '**/*.dylib',
-        # Log files
-        '**/logs/**',
-        '**/*.log',
+        '**/*.obj',
+        '**/*.o',
+        '**/*.a',
+        '**/*.lib',
+        '**/*.bin',
+        '**/*.class',
+        '**/*.mo',
+
+        # Archives and compressed files
+        '**/*.zip',
+        '**/*.tar.gz',
+        '**/*.7z',
+        '**/*.rar',
+        '**/*.gz',
+        '**/*.bz2',
+        '**/*.xz',
+        '**/*.lzma',
+        '**/*.zst',
+        '**/*.lz4',
+
+        # Media files (often large; may be part of docs but typically excluded)
+        '**/*.jpg',
+        '**/*.jpeg',
+        '**/*.png',
+        '**/*.gif',
+        '**/*.bmp',
+        '**/*.ico',
+        '**/*.mp4',
+        '**/*.mov',
+        '**/*.avi',
+        '**/*.flv',
+        '**/*.mkv',
+        '**/*.wmv',
+        '**/*.mp3',
+        '**/*.wav',
+        '**/*.ogg',
+        '**/*.flac',
+        '**/*.aac',
+        '**/*.wma',
+
+        # Documents (binary formats that are usually not source)
+        '**/*.pdf',
+        '**/*.doc',
+        '**/*.docx',
+        '**/*.xls',
+        '**/*.xlsx',
+        '**/*.ppt',
+        '**/*.pptx',
+        '**/*.odt',
+        '**/*.ods',
+        '**/*.odp',
+        '**/*.rtf',
+
+        # Databases and GIS files
+        '**/*.db',
+        '**/*.sqlite',
+        '**/*.sql',
+        '**/*.dbf',
+        '**/*.mdb',
+        '**/*.accdb',
+        '**/*.shp',
     ],
     'dirs': [
+        # Version control directories
         '.git',
+        '.hg',
+        '.bzr',
+        '.svn',
+
+        # IDE and editor directories
+        '.idea',
+        '.vscode',
+        '.vs',
+
+        # Python and Node artifacts
+        'venv',
+        'env',
+        '.venv',
+        '.env',
         'node_modules',
+
+        # Build and cache directories
         '__pycache__',
         'dist',
         'build',
         'target',
         'coverage',
+        'vendor',
+        'bower_components',
+        '.cache',
+        '.sass-cache',
+        '.ipynb_checkpoints',
+
+        # Temporary directories
+        'tmp',
+        'temp',
     ]
 }
+
 
 @dataclass
 class GeneralConfig:

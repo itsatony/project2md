@@ -204,6 +204,9 @@ def process_repository(
         repo_path = git_handler.prepare_repository(force)
         progress.update(clone_task, completed=1)
         
+        # Ensure output directory exists
+        config.output_file.parent.mkdir(parents=True, exist_ok=True)
+        
         # Get repository information
         repo_info = git_handler.get_repo_info()
         
