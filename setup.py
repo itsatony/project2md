@@ -28,13 +28,13 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=[
-        "click>=8.0.0",
+        "click>=7.0.0",
         "gitpython>=3.1.0",
-        "pyyaml>=6.0.0",
-        "rich>=10.0.0",  # for progress bars and pretty output
+        "pyyaml>=5.1.0",
+        "rich>=9.0.0",  # for progress bars and pretty output
         "pathspec>=0.9.0",  # for gitignore-style pattern matching
-        "chardet>=4.0.0",  # for file encoding detection
-        "humanize>=4.0.0",  # for human-readable sizes
+        "chardet>=3.0.4",  # for file encoding detection
+        "humanize>=3.0.0",  # for human-readable sizes
     ],
     extras_require={
         "dev": [
