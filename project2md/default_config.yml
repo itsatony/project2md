@@ -1,0 +1,230 @@
+general:
+  max_depth: 10
+  max_file_size: "1MB"
+  stats_in_output: true
+  collapse_empty_dirs: true
+
+output:
+  format: "markdown"
+  stats: true
+
+include:
+  files:
+    # Programming Languages
+    - "**/*.py"         # Python
+    - "**/*.js"         # JavaScript
+    - "**/*.ts"         # TypeScript
+    - "**/*.java"       # Java
+    - "**/*.c"          # C
+    - "**/*.h"          # C header
+    - "**/*.cpp"        # C++
+    - "**/*.hpp"        # C++ header
+    - "**/*.cs"         # C#
+    - "**/*.rb"         # Ruby
+    - "**/*.php"        # PHP
+    - "**/*.go"         # Go
+    - "**/*.rs"         # Rust
+    - "**/*.swift"      # Swift
+    - "**/*.kt"         # Kotlin
+    - "**/*.m"          # Objective-C
+    - "**/*.mm"         # Objective-C++
+    - "**/*.scala"      # Scala
+    - "**/*.hs"         # Haskell
+    - "**/*.erl"        # Erlang
+    - "**/*.ex"         # Elixir
+    - "**/*.exs"        # Elixir script
+    - "**/*.clj"        # Clojure
+    - "**/*.cljs"       # ClojureScript
+    - "**/*.cljc"       # Clojure common
+    - "**/*.fs"         # F#
+    - "**/*.fsx"        # F# script
+    - "**/*.fsproj"     # F# project
+    - "**/*.ml"         # OCaml
+    - "**/*.lua"        # Lua
+    - "**/*.pl"         # Perl
+    - "**/*.pm"         # Perl module
+    - "**/*.r"          # R
+    - "**/*.dart"       # Dart
+    - "**/*.f90"        # Fortran
+    
+    # Shell and Scripts
+    - "**/*.sh"         # Shell script
+    - "**/*.bash"       # Bash script
+    - "**/*.zsh"        # Zsh script
+    - "**/*.ps1"        # PowerShell
+    - "**/*.bat"        # Windows batch
+    - "**/*.cmd"        # Windows command
+    
+    # Web Technologies
+    - "**/*.html"       # HTML
+    - "**/*.htm"        # HTML
+    - "**/*.css"        # CSS
+    - "**/*.scss"       # SCSS
+    - "**/*.sass"       # Sass
+    - "**/*.less"       # Less
+    - "**/*.jsx"        # React JSX
+    - "**/*.tsx"        # React TSX
+    
+    # Data & Config
+    - "**/*.json"       # JSON
+    - "**/*.yml"        # YAML
+    - "**/*.yaml"       # YAML
+    - "**/*.xml"        # XML
+    - "**/*.toml"       # TOML
+    - "**/*.ini"        # INI
+    - "**/*.conf"       # Config
+    - "**/*.properties" # Properties
+    
+    # Documentation
+    - "**/*.md"         # Markdown
+    - "**/*.rst"        # reStructuredText
+    - "**/*.txt"        # Plain text
+    - "**/*.tex"        # LaTeX
+    - "**/LICENSE*"     # License files
+    - "**/README*"      # README files
+    
+    # Build & Project
+    - "**/Makefile"     # Makefile
+    - "**/CMakeLists.txt" # CMake
+    - "**/Dockerfile"   # Dockerfile
+    - "**/docker-compose.yml" # Docker Compose
+    - "**/*.gradle"     # Gradle
+    - "**/*.gradle.kts" # Gradle Kotlin
+    - "**/pom.xml"      # Maven
+    - "**/Gemfile"      # Ruby Gemfile
+    - "**/requirements.txt" # Python requirements
+    - "**/package.json" # Node.js package
+    - "**/.editorconfig" # Editor config
+    
+    # Version Control
+    - "**/.gitignore"   # Git ignore
+    - "**/.dockerignore" # Docker ignore
+  
+  dirs:
+    - "src/"
+    - "lib/"
+    - "app/"
+    - "tests/"
+    - "docs/"
+    - "examples/"
+    - "scripts/"
+    - "tools/"
+
+exclude:
+  files:
+    # Output and Config files
+    - "project_summary.md"  # Default output file
+    - ".project2md.yml"     # Default config file
+    
+    # Draft files
+    - "**/__*.md"       # Draft markdown files
+    
+    # Version Control
+    - "**/.git/**"
+    - "**/.svn/**"
+    - "**/.hg/**"
+    - "**/.gitattributes"
+    - "**/.gitmodules"
+    
+    # Build & Compile
+    - "**/dist/**"
+    - "**/build/**"
+    - "**/target/**"
+    - "**/bin/**"
+    - "**/*.min.js"
+    - "**/*.min.css"
+    - "**/*.map"
+    
+    # Dependencies
+    - "**/node_modules/**"
+    - "**/vendor/**"
+    - "**/venv/**"
+    - "**/__pycache__/**"
+    
+    # Temporary & Cache
+    - "**/*.tmp"
+    - "**/*.temp"
+    - "**/*.swp"
+    - "**/*~"
+    - "**/*.bak"
+    - "**/*.cache"
+    - "**/.DS_Store"
+    
+    # Compiled & Binary
+    - "**/*.pyc"
+    - "**/*.pyo"
+    - "**/*.pyd"
+    - "**/*.so"
+    - "**/*.dll"
+    - "**/*.dylib"
+    - "**/*.exe"
+    - "**/*.obj"
+    - "**/*.o"
+    - "**/*.a"
+    - "**/*.lib"
+    - "**/*.bin"
+    - "**/*.out"
+    - "**/*.class"
+    
+    # IDE & Editor
+    - "**/.idea/**"
+    - "**/.vscode/**"
+    - "**/.vs/**"
+    - "**/*.sublime-*"
+    
+    # Logs & Debug
+    - "**/*.log"
+    - "**/npm-debug.log*"
+    - "**/yarn-debug.log*"
+    - "**/yarn-error.log*"
+    
+    # Media & Binary Content
+    - "**/*.jpg"
+    - "**/*.jpeg"
+    - "**/*.png"
+    - "**/*.gif"
+    - "**/*.ico"
+    - "**/*.svg"
+    - "**/*.mp3"
+    - "**/*.mp4"
+    - "**/*.wav"
+    - "**/*.pdf"
+    - "**/*.zip"
+    - "**/*.tar"
+    - "**/*.gz"
+    - "**/*.rar"
+    - "**/*.7z"
+    
+    # Documents
+    - "**/*.doc"
+    - "**/*.docx"
+    - "**/*.xls"
+    - "**/*.xlsx"
+    - "**/*.ppt"
+    - "**/*.pptx"
+    
+    # Database
+    - "**/*.db"
+    - "**/*.sqlite"
+    - "**/*.mdb"
+  
+  dirs:
+    - ".git"
+    - ".svn"
+    - ".hg"
+    - "node_modules"
+    - "venv"
+    - "env"
+    - ".venv"
+    - ".env"
+    - "dist"
+    - "build"
+    - "target"
+    - "__pycache__"
+    - ".idea"
+    - ".vscode"
+    - ".vs"
+    - "coverage"
+    - "tmp"
+    - "temp"
+    - "logs"

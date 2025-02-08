@@ -29,7 +29,40 @@ def setup_progress() -> Progress:
         console=console,
     )
 
-@click.command()
+@click.group()
+def cli():
+    """Project2MD - Transform repositories into comprehensive Markdown documentation."""
+    pass
+
+@cli.command()
+@click.option(
+    "--root-dir",
+    type=click.Path(file_okay=False, dir_okay=True),
+    help="Root directory for initialization (defaults to current directory)",
+    default="."
+)
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Overwrite existing config file",
+)
+def init(root_dir: str, force: bool):
+    """Initialize project2md by creating a default configuration file."""
+    try:
+        target_path = Path(root_dir) / '.project2md.yml'
+        if target_path.exists() and not force:
+            console.print(f"[yellow]Configuration file already exists at {target_path}[/yellow]")
+            console.print("[yellow]Use --force to overwrite[/yellow]")
+            return
+
+        Config.create_default_config(target_path)
+        console.print(f"[green]Created default configuration at {target_path}[/green]")
+
+    except Exception as e:
+        console.print(f"[red]Error creating configuration: {e}[/red]")
+        sys.exit(1)
+
+@cli.command()
 @click.option(
     "--repo",
     "repo_url",
@@ -89,7 +122,7 @@ def setup_progress() -> Progress:
     is_flag=True,
     help="Force processing of non-git directory",
 )
-def main(
+def process(
     repo_url: Optional[str],
     root_dir: Optional[str],
     target_dir: str,
@@ -161,17 +194,19 @@ def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
     try:
         config = None
         
-        # If config file is explicitly specified, use it
         if config_file:
+            # User explicitly specified a config file
             config = Config.from_yaml(config_file)
+            logger.info(f"Using configuration from {config_file}")
         else:
             # Look for config in current working directory
             cwd_config = Path.cwd() / '.project2md.yml'
             if cwd_config.exists():
                 config = Config.from_yaml(cwd_config)
+                logger.info(f"Using configuration from {cwd_config}")
             else:
-                # Don't create config file, just use defaults
-                config = Config()
+                # Load from default config (handled in Config.from_yaml)
+                config = Config.from_yaml("")
 
         # Apply smart defaults if no patterns configured
         config.apply_smart_defaults()
@@ -272,6 +307,10 @@ def process_repository(
         
     except Exception as e:
         raise click.ClickException(str(e))
+
+def main():
+    """Main entry point."""
+    cli()
 
 if __name__ == "__main__":
     main()

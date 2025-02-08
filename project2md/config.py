@@ -147,6 +147,11 @@ DEFAULT_INCLUDE_PATTERNS = {
 
 DEFAULT_EXCLUDE_PATTERNS = {
     'files': [
+        # Output and config files
+        'project_summary.md',  # Default output file
+        '.project2md.yml',     # Default config file
+        # Draft files
+        '**/__*.md',          # Draft markdown files
         # Version control metadata
         '.git/**',
         '.gitignore',
@@ -403,8 +408,16 @@ class Config:
                 data = yaml.safe_load(f)
             return cls.from_dict(data or {})
         except FileNotFoundError:
-            logger.warning(f"Config file not found at {path}, using defaults")
-            return cls()
+            # Try loading default config if custom config not found
+            default_config_path = Path(__file__).parent / 'default_config.yml'
+            try:
+                with open(default_config_path, 'r') as f:
+                    data = yaml.safe_load(f)
+                logger.info(f"Using default config from {default_config_path}")
+                return cls.from_dict(data or {})
+            except FileNotFoundError:
+                logger.warning("No config file found, using hardcoded defaults")
+                return cls()
         except yaml.YAMLError as e:
             raise ConfigError(f"Invalid YAML in config file: {e}")
         except Exception as e:

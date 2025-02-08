@@ -8,10 +8,12 @@ project2md is a command-line tool that creates a single Markdown file containing
 
 ## Features
 
-### Core Features (v1.0.0)
+### Core Features (v1.1.0)
 
 - Clone Git repositories using SSH authentication
 - Process existing local repositories
+- Configuration file support (.project2md.yml)
+- Project initialization with default config
 - Intelligent file filtering with glob patterns
 - Configurable directory depth limits
 - Text file content extraction
@@ -19,6 +21,9 @@ project2md is a command-line tool that creates a single Markdown file containing
 - Project statistics
 - Progress tracking
 - Branch information
+- Smart defaults for common file patterns
+- Draft file exclusion (`__*.md`)
+- Gitignore integration
 
 ### Planned Features
 
@@ -34,21 +39,47 @@ pip install project2md
 
 ## Usage
 
-### Basic Usage
+### Initialization
+
+```bash
+# Initialize project with default configuration
+project2md init
+
+# Initialize in specific directory
+project2md init --root-dir /path/to/project
+
+# Force overwrite existing config
+project2md init --force
+```
+
+### Processing Repositories
 
 ```bash
 # Process a remote repository
-project2md --repo=https://github.com/user/repo --output=summary.md
+project2md process --repo=https://github.com/user/repo --output=summary.md
 
 # Process current directory
-project2md --output=summary.md
+project2md process --output=summary.md
 
 # Use specific configuration
-project2md --repo=https://github.com/user/repo --config=.project2md.yml
+project2md process --repo=https://github.com/user/repo --config=.project2md.yml
 ```
 
 ### Command Line Arguments
 
+#### Global Options
+```text
+init        Initialize project with default configuration
+process     Process a repository or directory
+```
+
+#### Init Command Options
+```text
+--root-dir  Root directory for initialization (defaults to current directory)
+--force     Overwrite existing config file
+```
+
+#### Process Command Options
 ```text
 --repo        Repository URL (optional, defaults to current directory)
 --target      Clone target directory (optional, defaults to current directory)
@@ -56,36 +87,49 @@ project2md --repo=https://github.com/user/repo --config=.project2md.yml
 --config      Configuration file path (optional, defaults to .project2md.yml)
 --include     Include patterns (can be specified multiple times)
 --exclude     Exclude patterns (can be specified multiple times)
+--branch      Specific branch to process (defaults to 'main')
 ```
 
 ### Configuration File (.project2md.yml)
 
+The tool automatically creates this file when you run `project2md init`. It includes:
+
 ```yaml
 general:
   max_depth: 10
-  max_file_size: 1MB
+  max_file_size: "1MB"
   stats_in_output: true
   collapse_empty_dirs: true
+
 output:
-  format: markdown
+  format: "markdown"
   stats: true
+
 include:
   files:
-    - "*.md"
-    - "*.py"
-    - "src/**/*.js"
+    - "**/*.py"         # Python files
+    - "**/*.js"         # JavaScript files
+    - "**/*.md"         # Markdown files
+    # ... many more defaults for common file types
   dirs:
     - "src/"
     - "lib/"
+    - "app/"
+    - "tests/"
+    - "docs/"
+
 exclude:
   files:
-    - "*.test.js"
-    - "*.spec.ts"
-    - "**/node_modules/**"
+    - "project_summary.md"  # Default output file
+    - ".project2md.yml"     # Config file
+    - "**/__*.md"          # Draft markdown files
+    - "**/.git/**"         # Git files
+    # ... many more sensible defaults
   dirs:
-    - "dist/"
-    - "build/"
-    - "coverage/"
+    - ".git"
+    - "node_modules"
+    - "venv"
+    # ... more excluded directories
 ```
 
 ## Output Format
@@ -95,31 +139,26 @@ The generated Markdown file follows this structure:
 ```markdown
 # Project Overview
 
-project README.md content:
-
-```markdown
 {README.md content}
-```
 
-project file- and folder tree:
+# Project Structure
 
 ```tree
 {project tree}
 ```
 
-## Project Statistics
+# Statistics
 
-{statistics if enabled}
+{detailed statistics if enabled}
 
-## File Contents
+# File Contents
 
-### filepath repoRoot/file1
-
+## filepath: repoRoot/file1
 {file1 content}
 
-### filepath repoRoot/dir/file2
-
+## filepath: repoRoot/dir/file2
 {file2 content}
+```
 
 ## Development
 
@@ -253,6 +292,17 @@ The tool implements comprehensive error handling:
 ### Contributing
 
 Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
+
+## Changes in v1.1.0
+
+- Added `init` command for project initialization
+- Improved configuration file handling
+- Added draft markdown exclusion (`__*.md`)
+- Enhanced default file patterns
+- Added config file auto-detection
+- Improved documentation
+- Better error messages
+- Smarter default configurations
 
 ## License
 

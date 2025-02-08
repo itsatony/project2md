@@ -1,6 +1,6 @@
 [project]
 name = "project2md"
-version = "1.0.2"
+version = "1.1.0"
 description = "Transform Dirs or Git repositories into comprehensive Markdown documentation with intelligent file filtering and structure preservation."
 authors = [
     {name = "itsatony",email = "i@itsatony.com"}
@@ -26,7 +26,7 @@ isort = ">=5.12.0"
 pylint = ">=2.17.5"
 
 [tool.poetry.scripts]
-project2md = "project2md.cli:main"
+project2md = "project2md.cli:main"  # Changed from cli:main to point to new main function
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
