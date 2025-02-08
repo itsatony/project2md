@@ -359,6 +359,42 @@ class Config:
     output_file: Path = Path('project_summary.md')
     branch: str = "main"  # Add this line
 
+    DEFAULT_INCLUDES = {
+        'files': [
+            '*.py', '*.js', '*.ts', '*.java', '*.c', '*.cpp', '*.h', '*.hpp',
+            '*.cs', '*.go', '*.rs', '*.rb', '*.php', '*.swift', '*.kt',
+            '*.md', '*.txt', '*.json', '*.yaml', '*.yml', '*.xml',
+            '*.html', '*.css', '*.scss', '*.sass', '*.less',
+            'LICENSE*', 'README*', 'CHANGELOG*', 'CONTRIBUTING*'
+        ],
+        'dirs': [
+            'src/', 'lib/', 'app/', 'tests/', 'docs/'
+        ]
+    }
+
+    DEFAULT_EXCLUDES = {
+        'files': [
+            '*.min.js', '*.min.css', '*.map',
+            '*.pyc', '*.pyo', '*.pyd', '__pycache__/*',
+            '*.o', '*.obj', '*.a', '*.lib', '*.so', '*.dll', '*.dylib',
+            '*.exe', '*.bin', '*.out',
+            '*.zip', '*.tar', '*.gz', '*.rar', '*.7z',
+            '*.pdf', '*.doc', '*.docx', '*.xls', '*.xlsx',
+            '*.png', '*.jpg', '*.jpeg', '*.gif', '*.ico', '*.svg',
+            '*.mo', '*.pot',
+            '**/node_modules/**', '**/vendor/**', '**/build/**', '**/dist/**',
+            '**/.git/**', '**/.svn/**', '**/.hg/**',
+            '**/.idea/**', '**/.vscode/**', '**/.DS_Store'
+        ],
+        'dirs': [
+            '.git/', '.svn/', '.hg/',
+            'node_modules/', 'vendor/', 'venv/', 'env/',
+            'build/', 'dist/', 'target/',
+            '.idea/', '.vscode/', '__pycache__/',
+            'coverage/', '.nyc_output/', '.coverage/'
+        ]
+    }
+
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> 'Config':
         """Load configuration from YAML file."""
@@ -477,6 +513,10 @@ class Config:
             self.include.files.extend(cli_args['include'])
         if cli_args.get('exclude'):
             self.exclude.files.extend(cli_args['exclude'])
+        if cli_args.get('include_extra'):
+            self.include.files.extend(cli_args['include_extra'])
+        if cli_args.get('exclude_extra'):
+            self.exclude.files.extend(cli_args['exclude_extra'])
 
         if cli_args.get('branch'):
             self.branch = cli_args['branch']

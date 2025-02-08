@@ -75,6 +75,16 @@ def setup_progress() -> Progress:
     help="Patterns to exclude (can be specified multiple times)",
 )
 @click.option(
+    "--include-extra",
+    multiple=True,
+    help="Additional patterns to include (adds to defaults)",
+)
+@click.option(
+    "--exclude-extra",
+    multiple=True,
+    help="Additional patterns to exclude (adds to defaults)",
+)
+@click.option(
     "--force",
     is_flag=True,
     help="Force processing of non-git directory",
@@ -87,6 +97,8 @@ def main(
     config_file: Optional[str],
     include: List[str],
     exclude: List[str],
+    include_extra: List[str],
+    exclude_extra: List[str],
     force: bool,
     branch: Optional[str],
 ) -> None:
