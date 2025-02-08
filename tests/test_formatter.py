@@ -1,9 +1,10 @@
 # tests/test_formatter.py
 import pytest
 from pathlib import Path
-from project2md.formatter import MarkdownFormatter, FormatterError
+from project2md.formatters import MarkdownFormatter, FormatterError
 from project2md.config import Config, OutputFormat
 import json
+from project2md.formatters.json_formatter import JSONFormatter
 
 @pytest.fixture
 def config():
@@ -14,6 +15,10 @@ def config():
 @pytest.fixture
 def formatter(config):
     return MarkdownFormatter(config)
+
+@pytest.fixture
+def json_formatter(config):
+    return JSONFormatter(config)
 
 @pytest.fixture
 def sample_files(tmp_path):
@@ -70,11 +75,9 @@ def test_generate_markdown(formatter, sample_files, sample_stats, tmp_path):
     assert "Total Files: 5" in content  # Stats
     assert "```tree" in content  # Tree structure
 
-def test_generate_json(formatter, sample_files, sample_stats, tmp_path):
-    formatter.config.output.format = OutputFormat.JSON
+def test_generate_json(json_formatter, sample_files, sample_stats, tmp_path):
     output = tmp_path / "output.json"
-    
-    formatter.generate_output(tmp_path / "repo", sample_files, sample_stats, output)
+    json_formatter.generate_output(tmp_path / "repo", sample_files, sample_stats, output)
     
     with open(output) as f:
         data = json.load(f)

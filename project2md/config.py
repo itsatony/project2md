@@ -13,6 +13,14 @@ logger = logging.getLogger(__name__)
 class OutputFormat(Enum):
     MARKDOWN = "markdown"
     JSON = "json"
+    YAML = "yaml"
+
+    @classmethod
+    def from_string(cls, value: str) -> 'OutputFormat':
+        try:
+            return cls(value.lower())
+        except ValueError:
+            raise ConfigError(f"Invalid output format: {value}")
 
 DEFAULT_INCLUDE_PATTERNS = {
     'files': [
@@ -348,6 +356,21 @@ class OutputConfig:
     format: OutputFormat = OutputFormat.MARKDOWN
     stats: bool = True
 
+    def validate(self):
+        if not isinstance(self.format, OutputFormat):
+            raise ConfigError("Invalid output format")
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'OutputConfig':
+        config = cls()
+        if 'format' in data:
+            config.format = OutputFormat.from_string(data['format'])
+        return config
+
+    def merge_cli_args(self, args: dict):
+        if 'format' in args:
+            self.format = OutputFormat.from_string(args['format'])
+
 @dataclass
 class PathPatterns:
     files: List[str] = field(default_factory=list)
@@ -439,10 +462,7 @@ class Config:
                 collapse_empty_dirs=general_data.get('collapse_empty_dirs', True)
             )
 
-            output = OutputConfig(
-                format=OutputFormat(output_data.get('format', 'markdown')),
-                stats=output_data.get('stats', True)
-            )
+            output = OutputConfig.from_dict(output_data)
 
             include = PathPatterns(
                 files=include_data.get('files', []),

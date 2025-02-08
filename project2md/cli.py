@@ -7,10 +7,10 @@ from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskID
 import logging
 
-from .config import Config, ConfigError
+from .config import Config, ConfigError, OutputFormat
 from .git import GitHandler
 from .walker import FileSystemWalker
-from .formatter import MarkdownFormatter
+from .formatters.factory import get_formatter  # Single formatter import
 from .stats import StatsCollector
 from .messages import MessageHandler
 
@@ -122,6 +122,12 @@ def init(root_dir: str, force: bool):
     is_flag=True,
     help="Force processing of non-git directory",
 )
+@click.option(
+    "--format",
+    type=click.Choice(['markdown', 'json', 'yaml'], case_sensitive=False),
+    default='markdown',
+    help="Output format (default: markdown)",
+)
 def process(
     repo_url: Optional[str],
     root_dir: Optional[str],
@@ -134,6 +140,7 @@ def process(
     exclude_extra: List[str],
     force: bool,
     branch: Optional[str],
+    format: str,
 ) -> None:
     """
     Transform Git repositories or local directories into comprehensive Markdown documentation.
@@ -163,15 +170,17 @@ def process(
             # Initialize components
             git_handler = GitHandler(config, progress)
             walker = FileSystemWalker(config, progress)
-            formatter = MarkdownFormatter(config)
             stats_collector = StatsCollector()
+
+            # Get appropriate formatter using factory
+            formatter = get_formatter(config)
 
             # Main workflow
             process_repository(
                 config,
                 git_handler,
                 walker,
-                formatter,
+                formatter,  # Pass the formatter
                 stats_collector,
                 progress,
                 force,
@@ -218,7 +227,7 @@ def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
         # Merge CLI arguments
         filtered_args = {
             k: v for k, v in cli_args.items()
-            if k in ['repo_url', 'target_dir', 'output_file', 'include', 'exclude', 'branch']
+            if k in ['repo_url', 'target_dir', 'output_file', 'include', 'exclude', 'branch', 'format']
             and v is not None
         }
         config.merge_cli_args(filtered_args)
@@ -235,7 +244,6 @@ def process_repository(
     config: Config,
     git_handler: GitHandler,
     walker: FileSystemWalker,
-    formatter: MarkdownFormatter,
     stats_collector: StatsCollector,
     progress: Progress,
     force: bool,
@@ -277,6 +285,9 @@ def process_repository(
         stats = stats_collector.get_stats(repo_info.get('branch', 'unknown'))
         progress.update(stats_task, completed=1)
             
+        # Get appropriate formatter
+        formatter = get_formatter(config)
+        
         # Generate output
         progress.update(format_task, total=1, completed=0)
         formatter.generate_output(
