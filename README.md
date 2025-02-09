@@ -28,7 +28,6 @@ project2md is a command-line tool that creates a single Markdown file containing
 
 ### Planned Features
 
-- Additional output formats (JSON)
 - Enhanced tree visualization
 - Extended Git metadata support
 
@@ -304,6 +303,10 @@ Contributions are welcome! Please read our contributing guidelines before submit
 - Improved documentation
 - Better error messages
 - Smarter default configurations
+
+## v1.2.1
+
+Added "explicit" CLI command that generates explicit.config.project2md.yml, listing all files/dirs with per-item size info and their default inclusion status.
 
 ## License
 

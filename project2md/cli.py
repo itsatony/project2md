@@ -14,6 +14,7 @@ from .formatters.factory import get_formatter  # Single formatter import
 from .formatters.base import BaseFormatter
 from .stats import StatsCollector
 from .messages import MessageHandler
+from .explicit_config_generator import generate_explicit_config
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -197,6 +198,34 @@ def process(
     except Exception as e:
         message_handler.error("Unexpected error occurred", e)
         logger.exception("Unexpected error occurred")
+        sys.exit(1)
+
+@cli.command()
+@click.option(
+    "--directory",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+    default=".",
+    help="Directory to analyze."
+)
+def explicit(directory):
+    """
+    Generate or overwrite explicit.config.project2md.yml based on current directory tree.
+    Uses the same config logic (includes/excludes) as 'process'.
+    """
+    try:
+        from .config import Config
+        # Load config from project2md.yml or defaults
+        config = load_configuration(None, {
+            'repo_url': None,
+            'target_dir': directory,
+        })
+        output_path = Path(directory) / "explicit.config.project2md.yml"
+
+        # Call the improved function using the loaded config
+        generate_explicit_config(Path(directory), config, output_path)
+        console.print(f"[green]Explicit config generated at {output_path}[/green]")
+    except Exception as e:
+        console.print(f"[red]Error generating explicit config: {e}[/red]")
         sys.exit(1)
 
 def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:

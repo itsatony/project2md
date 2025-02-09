@@ -99,3 +99,37 @@ def test_process_git_repo(tmp_path):
     
     assert result.exit_code == 0
     assert (tmp_path / 'output.json').exists()
+
+def test_explicit_command(tmp_path):
+    runner = CliRunner()
+    result = runner.invoke(cli, ["explicit", "--directory", str(tmp_path)])
+    assert result.exit_code == 0
+    config_file = tmp_path / "explicit.config.project2md.yml"
+    assert config_file.exists()
+
+def test_explicit_command_with_files(tmp_path):
+    # Create sample files
+    (tmp_path / "include_me.py").write_text("print('test')")
+    (tmp_path / ".gitignore").write_text("exclude_me.bin")
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["explicit", "--directory", str(tmp_path)])
+    assert result.exit_code == 0
+
+    config_file = tmp_path / "explicit.config.project2md.yml"
+    assert config_file.exists(), "Expected config file not found."
+
+    with config_file.open() as f:
+        data = yaml.safe_load(f)
+
+    # Check high-level keys
+    assert "tree" in data, "Expected 'tree' field missing in output."
+    assert "files" in data, "Expected 'files' list missing in output."
+    assert any("include_me.py" in x["path"] for x in data["files"]), \
+        "Expected 'include_me.py' not listed in output."
+
+    # Check that includes/excludes are reflected
+    bin_file_entry = next((x for x in data["files"] if "exclude_me.bin" in x["path"]), None)
+    if bin_file_entry:
+        # If the bin file was present, ensure it's excluded
+        assert bin_file_entry["include"] is False, "Binary file should be excluded."
