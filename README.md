@@ -308,6 +308,14 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 Added "explicit" CLI command that generates explicit.config.project2md.yml, listing all files/dirs with per-item size info and their default inclusion status.
 
+## CLI Help
+
+When no command or invalid arguments are provided, project2md now shows usage information by default. Use:
+```bash
+project2md --help
+```
+to see all available options.
+
 ## License
 
 MIT License - see LICENSE file for details.

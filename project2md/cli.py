@@ -31,10 +31,13 @@ def setup_progress() -> Progress:
         console=console,
     )
 
-@click.group()
-def cli():
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
     """Project2MD - Transform repositories into comprehensive Markdown documentation."""
-    pass
+    if not ctx.invoked_subcommand:
+        click.echo(ctx.command.get_help(ctx))
+        ctx.exit()
 
 @cli.command()
 @click.option(
@@ -361,8 +364,12 @@ def process_repository(
         raise click.ClickException(str(e))
 
 def main():
-    """Main entry point."""
-    cli()
+    try:
+        cli()
+    except click.ClickException as e:
+        console.print(f"[red]{e}[/red]")
+        console.print("[red]Use --help for usage info.[/red]")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
