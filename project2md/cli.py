@@ -16,6 +16,8 @@ from .stats import StatsCollector
 from .messages import MessageHandler
 from .explicit_config_generator import generate_explicit_config
 
+VERSION = "1.2.2"
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,10 +33,9 @@ def setup_progress() -> Progress:
         console=console,
     )
 
-@click.group(invoke_without_command=True)
+@click.group(invoke_without_command=True, help=f"Project2MD v{VERSION} - Transform repositories into comprehensive Markdown documentation.")
 @click.pass_context
 def cli(ctx):
-    """Project2MD - Transform repositories into comprehensive Markdown documentation."""
     if not ctx.invoked_subcommand:
         click.echo(ctx.command.get_help(ctx))
         ctx.exit()
@@ -231,6 +232,11 @@ def explicit(directory):
         console.print(f"[red]Error generating explicit config: {e}[/red]")
         sys.exit(1)
 
+@cli.command()
+def version():
+    """Show the current project2md version."""
+    click.echo(f"project2md version {VERSION}")
+
 def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
     """Load and merge configuration from file and CLI arguments."""
     try:
@@ -365,10 +371,16 @@ def process_repository(
 
 def main():
     try:
-        cli()
+        cli(standalone_mode=False)
+    except click.UsageError as e:
+        console.print(f"[red]{e}[/red]")
+        with click.Context(cli) as ctx:
+            console.print(ctx.command.get_help(ctx))
+        sys.exit(1)
     except click.ClickException as e:
         console.print(f"[red]{e}[/red]")
-        console.print("[red]Use --help for usage info.[/red]")
+        with click.Context(cli) as ctx:
+            console.print(ctx.command.get_help(ctx))
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ project2md is a command-line tool that creates a single Markdown file containing
 
 ## Features
 
-### Core Features (v1.2.0)
+### Core Features (v1.2.2)
 
 - Multiple output formats (Markdown, JSON, YAML)
 - Clone Git repositories using SSH authentication
@@ -307,6 +307,10 @@ Contributions are welcome! Please read our contributing guidelines before submit
 ## v1.2.1
 
 Added "explicit" CLI command that generates explicit.config.project2md.yml, listing all files/dirs with per-item size info and their default inclusion status.
+
+## v1.2.2
+- Added a dedicated version command
+- Updated CLI to show help upon parsing errors without the default “Try ...” message
 
 ## CLI Help
 
