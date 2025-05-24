@@ -36,6 +36,7 @@ The new `--signatures` flag transforms how code files are processed:
 - **Supported languages**: Python, JavaScript, TypeScript, Java, C/C++, C#, Go, Rust, PHP, Ruby
 
 Example output with `--signatures`:
+
 ```python
 def add_numbers(a, b): [lines:3]
 class Calculator: [lines:15]
@@ -87,6 +88,7 @@ project2md process --repo=https://github.com/user/repo --config=.project2md.yml
 ### Command Line Arguments
 
 #### Global Options
+
 ```text
 init        Initialize project with default configuration
 process     Process a repository or directory
@@ -95,12 +97,14 @@ version     Show version information
 ```
 
 #### Init Command Options
+
 ```text
 --root-dir  Root directory for initialization (defaults to current directory)
 --force     Overwrite existing config file
 ```
 
 #### Process Command Options
+
 ```text
 --repo        Repository URL (optional, defaults to current directory)
 --target      Clone target directory (optional, defaults to current directory)
@@ -114,6 +118,7 @@ version     Show version information
 ```
 
 #### Explicit Command Options
+
 ```text
 --directory   Directory to analyze (defaults to current directory)
 ```
@@ -164,7 +169,7 @@ exclude:
 
 The generated Markdown file follows this structure:
 
-```markdown
+````markdown
 # Project Overview
 
 {README.md content}
@@ -182,11 +187,13 @@ The generated Markdown file follows this structure:
 # File Contents
 
 ## filepath: repoRoot/file1
+
 {file1 content}
 
 ## filepath: repoRoot/dir/file2
+
 {file2 content}
-```
+````
 
 ### Signature Mode Output
 
@@ -359,7 +366,8 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 ## Version History
 
-### v1.3.0 (Latest)
+### v1.3.1 (Latest)
+
 - **NEW**: Signature extraction mode with `--signatures` flag
 - **NEW**: Support for extracting function signatures from code files
 - **NEW**: Markdown header extraction with line counts
@@ -369,13 +377,16 @@ Contributions are welcome! Please read our contributing guidelines before submit
 - Improved configuration system for signature mode
 
 ### v1.2.2
+
 - Added a dedicated version command
 - Updated CLI to show help upon parsing errors without the default "Try ..." message
 
 ### v1.2.1
+
 - Added "explicit" CLI command that generates explicit.config.project2md.yml, listing all files/dirs with per-item size info and their default inclusion status
 
 ### v1.1.0
+
 - Added `init` command for project initialization
 - Improved configuration file handling
 - Added draft markdown exclusion (`__*.md`)
@@ -388,9 +399,11 @@ Contributions are welcome! Please read our contributing guidelines before submit
 ## CLI Help
 
 When no command or invalid arguments are provided, project2md now shows usage information by default. Use:
+
 ```bash
 project2md --help
 ```
+
 to see all available options.
 
 ## License

@@ -16,7 +16,7 @@ from .stats import StatsCollector
 from .messages import MessageHandler
 from .explicit_config_generator import generate_explicit_config
 
-VERSION = "1.2.2"
+VERSION = "1.3.1"
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
