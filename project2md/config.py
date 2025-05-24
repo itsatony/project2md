@@ -386,6 +386,7 @@ class Config:
     target_dir: Path = Path.cwd()
     output_file: Path = Path('project_summary.md')
     branch: str = "main"  # Add this line
+    signatures_mode: bool = False
 
     DEFAULT_INCLUDES = {
         'files': [
@@ -557,6 +558,9 @@ class Config:
         if 'format' in cli_args:
             # Ensure format is properly set as enum
             self.output.format = OutputFormat(cli_args['format'].lower())
+
+        if 'signatures' in cli_args:
+            self.signatures_mode = cli_args['signatures']
 
     def validate(self) -> None:
         """Validate configuration settings."""

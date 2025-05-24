@@ -134,6 +134,11 @@ def init(root_dir: str, force: bool):
     default='markdown',
     help="Output format (default: markdown)",
 )
+@click.option(
+    "--signatures",
+    is_flag=True,
+    help="Extract only function signatures from code files and headers from markdown files",
+)
 def process(
     repo_url: Optional[str],
     root_dir: Optional[str],
@@ -147,6 +152,7 @@ def process(
     force: bool,
     branch: Optional[str],
     format: str,
+    signatures: bool,
 ) -> None:
     """
     Transform Git repositories or local directories into comprehensive Markdown documentation.
@@ -172,6 +178,9 @@ def process(
         # Update target directory in config
         config.target_dir = working_dir
         
+        # Set signatures mode in config
+        config.signatures_mode = signatures
+
         with setup_progress() as progress:
             # Initialize components
             git_handler = GitHandler(config, progress)
@@ -266,7 +275,7 @@ def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
         # Merge CLI arguments
         filtered_args = {
             k: v for k, v in cli_args.items()
-            if k in ['repo_url', 'target_dir', 'output_file', 'include', 'exclude', 'branch', 'format']
+            if k in ['repo_url', 'target_dir', 'output_file', 'include', 'exclude', 'branch', 'format', 'signatures']
             and v is not None
         }
         config.merge_cli_args(filtered_args)
@@ -327,6 +336,12 @@ def process_repository(
         for file in files:
             content = walker.read_file(file)
             if content is not None or not config.general.stats_in_output:
+                # Apply signature processing if enabled
+                if config.signatures_mode and content is not None:
+                    from .signature_processor import SignatureProcessor
+                    processor = SignatureProcessor()
+                    content = processor.process_file(file, content)
+                
                 stats_collector.process_file(file, content)
                 processed_files.append((file, content))
             progress.update(walk_task, advance=1)

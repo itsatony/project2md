@@ -8,8 +8,9 @@ project2md is a command-line tool that creates a single Markdown file containing
 
 ## Features
 
-### Core Features (v1.2.2)
+### Core Features (v1.3.0)
 
+- **Signature extraction mode** - Extract only function signatures and headers for high-level code overview
 - Multiple output formats (Markdown, JSON, YAML)
 - Clone Git repositories using SSH authentication
 - Process existing local repositories
@@ -25,6 +26,21 @@ project2md is a command-line tool that creates a single Markdown file containing
 - Smart defaults for common file patterns
 - Draft file exclusion (`__*.md`)
 - Gitignore integration
+
+### Signature Extraction
+
+The new `--signatures` flag transforms how code files are processed:
+
+- **Code files**: Extracts function signatures, class definitions, and method signatures with line counts
+- **Markdown files**: Keeps only headers with section line counts
+- **Supported languages**: Python, JavaScript, TypeScript, Java, C/C++, C#, Go, Rust, PHP, Ruby
+
+Example output with `--signatures`:
+```python
+def add_numbers(a, b): [lines:3]
+class Calculator: [lines:15]
+async def process_async(items: List[str]) -> bool: [lines:8]
+```
 
 ### Planned Features
 
@@ -61,6 +77,9 @@ project2md process --repo=https://github.com/user/repo --output=summary.md
 # Process current directory
 project2md process --output=summary.md
 
+# Extract only signatures for a high-level overview
+project2md process --signatures --output=signatures.md
+
 # Use specific configuration
 project2md process --repo=https://github.com/user/repo --config=.project2md.yml
 ```
@@ -71,6 +90,8 @@ project2md process --repo=https://github.com/user/repo --config=.project2md.yml
 ```text
 init        Initialize project with default configuration
 process     Process a repository or directory
+explicit    Generate explicit configuration file
+version     Show version information
 ```
 
 #### Init Command Options
@@ -88,6 +109,13 @@ process     Process a repository or directory
 --include     Include patterns (can be specified multiple times)
 --exclude     Exclude patterns (can be specified multiple times)
 --branch      Specific branch to process (defaults to 'main')
+--format      Output format: markdown, json, yaml (default: markdown)
+--signatures  Extract only function signatures and headers
+```
+
+#### Explicit Command Options
+```text
+--directory   Directory to analyze (defaults to current directory)
 ```
 
 ### Configuration File (.project2md.yml)
@@ -160,6 +188,25 @@ The generated Markdown file follows this structure:
 {file2 content}
 ```
 
+### Signature Mode Output
+
+When using `--signatures`, the output focuses on structure:
+
+```markdown
+# File Contents
+
+## filepath: repoRoot/main.py
+def main(args): [lines:15]
+class Application: [lines:45]
+async def startup(): [lines:8]
+
+## filepath: repoRoot/README.md
+# Main Title [lines:3]
+## Installation [lines:12]
+### Prerequisites [lines:5]
+## Usage [lines:25]
+```
+
 ## Development
 
 ### Setting Up Development Environment
@@ -213,19 +260,29 @@ Tests are organized in the `tests/` directory:
 - `test_walker.py`: File system traversal tests
 - `test_formatter.py`: Output formatting tests
 - `test_stats.py`: Statistics collection tests
+- `test_signature_processor.py`: Signature extraction tests
+- `test_cli_signatures.py`: CLI integration tests for signatures
 
 ### Project Structure
 
 ```tree
 project2md/
-├── __init__.py          # Package initialization
-├── cli.py              # Command-line interface
-├── config.py           # Configuration handling
-├── git.py             # Git operations
-├── walker.py          # File system traversal
-├── formatter.py       # Output formatting
-├── stats.py          # Statistics collection
-└── utils.py          # Shared utilities
+├── __init__.py                  # Package initialization
+├── cli.py                      # Command-line interface
+├── config.py                   # Configuration handling
+├── git.py                     # Git operations
+├── walker.py                  # File system traversal
+├── signature_processor.py     # Signature extraction (NEW)
+├── formatters/                # Output formatting
+│   ├── base.py               # Base formatter
+│   ├── factory.py            # Formatter factory
+│   ├── markdown.py           # Markdown formatter
+│   ├── json.py               # JSON formatter
+│   └── yaml.py               # YAML formatter
+├── stats.py                  # Statistics collection
+├── messages.py               # User messaging
+├── explicit_config_generator.py  # Explicit config generation
+└── utils.py                  # Shared utilities
 ```
 
 ### Component Responsibilities
@@ -244,6 +301,13 @@ project2md/
 - Validate configuration
 - Provide unified config interface
 
+#### Signature Processor (signature_processor.py)
+
+- Extract function signatures from code files
+- Process markdown headers with line counts
+- Support multiple programming languages
+- Handle syntax errors gracefully
+
 #### Git Operations (git.py)
 
 - Clone repositories
@@ -259,12 +323,12 @@ project2md/
 - Manage directory depth
 - Detect binary files
 
-#### Formatter (formatter.py)
+#### Formatters (formatters/)
 
-- Generate Markdown output
+- Generate output in multiple formats
 - Create directory tree visualization
 - Format statistics
-- Handle alternative output formats
+- Handle file content rendering
 
 #### Statistics (stats.py)
 
@@ -293,8 +357,25 @@ The tool implements comprehensive error handling:
 
 Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
 
-## Changes in v1.1.0
+## Version History
 
+### v1.3.0 (Latest)
+- **NEW**: Signature extraction mode with `--signatures` flag
+- **NEW**: Support for extracting function signatures from code files
+- **NEW**: Markdown header extraction with line counts
+- **NEW**: Multi-language support (Python, JS, TS, Java, C/C++, C#, Go, Rust, PHP, Ruby)
+- **NEW**: Comprehensive test suite for signature processing
+- Enhanced CLI with signature processing integration
+- Improved configuration system for signature mode
+
+### v1.2.2
+- Added a dedicated version command
+- Updated CLI to show help upon parsing errors without the default "Try ..." message
+
+### v1.2.1
+- Added "explicit" CLI command that generates explicit.config.project2md.yml, listing all files/dirs with per-item size info and their default inclusion status
+
+### v1.1.0
 - Added `init` command for project initialization
 - Improved configuration file handling
 - Added draft markdown exclusion (`__*.md`)
@@ -303,14 +384,6 @@ Contributions are welcome! Please read our contributing guidelines before submit
 - Improved documentation
 - Better error messages
 - Smarter default configurations
-
-## v1.2.1
-
-Added "explicit" CLI command that generates explicit.config.project2md.yml, listing all files/dirs with per-item size info and their default inclusion status.
-
-## v1.2.2
-- Added a dedicated version command
-- Updated CLI to show help upon parsing errors without the default “Try ...” message
 
 ## CLI Help
 
