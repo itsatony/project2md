@@ -385,7 +385,7 @@ class Config:
     repo_url: Optional[str] = None
     target_dir: Path = Path.cwd()
     output_file: Path = Path('project_summary.md')
-    branch: str = "main"  # Add this line
+    branch: str = "main"
     signatures_mode: bool = False
 
     DEFAULT_INCLUDES = {
@@ -423,6 +423,12 @@ class Config:
             'coverage/', '.nyc_output/', '.coverage/'
         ]
     }
+
+    def __post_init__(self):
+        """Initialize computed fields after dataclass creation."""
+        # Ensure signatures_mode is always initialized
+        if not hasattr(self, 'signatures_mode'):
+            self.signatures_mode = False
 
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> 'Config':

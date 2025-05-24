@@ -6,6 +6,8 @@ import click
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskID
 import logging
+import toml
+from datetime import datetime
 
 from .config import Config, ConfigError, OutputFormat
 from .git import GitHandler
@@ -16,7 +18,25 @@ from .stats import StatsCollector
 from .messages import MessageHandler
 from .explicit_config_generator import generate_explicit_config
 
-VERSION = "1.3.1"
+def get_version() -> str:
+    """Get version from pyproject.toml."""
+    try:
+        # Look for pyproject.toml in package directory and parent directories
+        current_dir = Path(__file__).parent
+        for path in [current_dir, current_dir.parent, current_dir.parent.parent]:
+            pyproject_path = path / "pyproject.toml"
+            if pyproject_path.exists():
+                with open(pyproject_path, 'r') as f:
+                    pyproject_data = toml.load(f)
+                    # Try both [project] and [tool.poetry] sections
+                    version = (pyproject_data.get('project', {}).get('version') or 
+                              pyproject_data.get('tool', {}).get('poetry', {}).get('version'))
+                    return version or 'unknown'
+        return "unknown"
+    except Exception:
+        return "unknown"
+
+VERSION = get_version()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -33,11 +53,43 @@ def setup_progress() -> Progress:
         console=console,
     )
 
+def get_run_info(config: Config) -> dict:
+    """Generate run information for output."""
+    return {
+        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'version': VERSION,
+        'signatures_mode': getattr(config, 'signatures_mode', False),
+        'output_format': config.output.format.value,  # Convert enum to string
+        'pypi_url': 'https://pypi.org/project/project2md',
+        'github_url': 'https://github.com/itsatony/project2md'
+    }
+
 @click.group(invoke_without_command=True, help=f"Project2MD v{VERSION} - Transform repositories into comprehensive Markdown documentation.")
 @click.pass_context
 def cli(ctx):
     if not ctx.invoked_subcommand:
-        click.echo(ctx.command.get_help(ctx))
+        console.print(f"[bold blue]Project2MD v{VERSION}[/bold blue]")
+        console.print("Transform repositories into comprehensive Markdown documentation.\n")
+        
+        console.print("[bold]Quick Start:[/bold]")
+        console.print("  [green]project2md init[/green]                    # Create default config")
+        console.print("  [green]project2md process[/green]                 # Process current directory")
+        console.print("  [green]project2md process --signatures[/green]    # Extract only function signatures")
+        console.print("  [green]project2md process --repo=URL[/green]      # Process remote repository\n")
+        
+        console.print("[bold]Available Commands:[/bold]")
+        console.print("  [cyan]init[/cyan]        Initialize project with default configuration")
+        console.print("  [cyan]process[/cyan]     Process a repository or directory")
+        console.print("  [cyan]explicit[/cyan]    Generate explicit configuration file")
+        console.print("  [cyan]version[/cyan]     Show version information\n")
+        
+        console.print("[bold]Key Features:[/bold]")
+        console.print("  • [yellow]--signatures[/yellow]  Extract only function signatures and headers")
+        console.print("  • [yellow]--format[/yellow]      Output in markdown, json, or yaml")
+        console.print("  • [yellow]--config[/yellow]      Use custom configuration file")
+        console.print("  • [yellow]--repo[/yellow]        Process remote Git repositories\n")
+        
+        console.print("Use [green]project2md COMMAND --help[/green] for detailed options.")
         ctx.exit()
 
 @cli.command()
@@ -292,7 +344,7 @@ def process_repository(
     config: Config,
     git_handler: GitHandler,
     walker: FileSystemWalker,
-    formatter: BaseFormatter,
+    formatter: BaseFormatter,  # Use the passed formatter
     stats_collector: StatsCollector,
     progress: Progress,
     force: bool,
@@ -302,12 +354,14 @@ def process_repository(
     Process a repository and generate documentation.
     
     Args:
-        root_dir: Path to the repository root directory
         config: Configuration object
+        git_handler: Git handler instance
+        walker: File system walker instance
         formatter: Formatter instance to use
-        output_path: Path where to save the output
-        repo_url: Optional repository URL to clone
-        branch: Optional branch to process
+        stats_collector: Statistics collector instance
+        progress: Progress tracker
+        force: Force processing flag
+        message_handler: Message handler instance
     """
     
     # Setup progress tracking
@@ -349,23 +403,27 @@ def process_repository(
         progress.update(stats_task, total=1, completed=0)
         stats = stats_collector.get_stats(repo_info.get('branch', 'unknown'))
         progress.update(stats_task, completed=1)
-            
-        # Get appropriate formatter using factory
-        formatter = get_formatter(config)  # This will now properly handle the format
         
-        # Generate output
+        # Get run information
+        run_info = get_run_info(config)
+        
+        # Generate output using the passed formatter
         progress.update(format_task, total=1, completed=0)
         formatter.generate_output(
             repo_path,
             processed_files,
             stats,
-            config.output_file
+            config.output_file,
+            run_info  # Pass run info to formatter
         )
         progress.update(format_task, completed=1)
         
         # Print summary
         console.print("\n[bold green]Documentation generated successfully![/bold green]")
         console.print(f"[green]Output file: {config.output_file}[/green]")
+        
+        if config.signatures_mode:
+            console.print("[yellow]ℹ️  Signatures mode: Only function signatures and headers extracted[/yellow]")
         
         # Print quick stats summary
         if config.general.stats_in_output:

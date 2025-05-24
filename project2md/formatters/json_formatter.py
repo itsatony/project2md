@@ -17,15 +17,20 @@ class JSONFormatter(BaseFormatter):
         repo_path: Path,
         files: List[Tuple[Path, Optional[str]]],
         stats: Dict,
-        output_path: Path
+        output_path: Path,
+        run_info: dict = None
     ) -> None:
         """Generate JSON formatted output."""
         try:
             output = {
                 "metadata": {
-                    "generated_at": datetime.now().isoformat(),
+                    "generated_at": run_info.get('timestamp') if run_info else datetime.now().isoformat(),
                     "generator": "project2md",
-                    "version": "1.2.0"
+                    "version": run_info.get('version', '1.2.0') if run_info else '1.2.0',
+                    "signatures_mode": run_info.get('signatures_mode', False) if run_info else False,
+                    "output_format": run_info.get('output_format', 'json') if run_info else 'json',
+                    "pypi_url": run_info.get('pypi_url', 'https://pypi.org/project/project2md') if run_info else 'https://pypi.org/project/project2md',
+                    "github_url": run_info.get('github_url', 'https://github.com/itsatony/project2md') if run_info else 'https://github.com/itsatony/project2md'
                 },
                 "project": {
                     "readme": self._find_readme_content(files),

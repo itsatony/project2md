@@ -19,11 +19,21 @@ class BaseFormatter(ABC):
         self,
         repo_path: Path,
         files: List[Tuple[Path, Optional[str]]],
-        stats: Dict,
-        output_path: Path
+        stats: dict,
+        output_path: Path,
+        run_info: dict = None
     ) -> None:
-        """Generate formatted output."""
-        pass
+        """
+        Generate output file.
+        
+        Args:
+            repo_path: Path to the repository root
+            files: List of (file_path, content) tuples
+            stats: Statistics dictionary
+            output_path: Path where to save the output
+            run_info: Information about the current run
+        """
+        raise NotImplementedError("Subclasses must implement generate_output")
 
     def _find_readme_content(self, files: List[Tuple[Path, Optional[str]]]) -> Optional[str]:
         """Find README content in files."""
