@@ -32,7 +32,10 @@ project2md is a command-line tool that creates a single Markdown file containing
 The new `--signatures` flag transforms how code files are processed:
 
 - **Code files**: Extracts function signatures, class definitions, and method signatures with line counts
-- **Markdown files**: Keeps only headers with section line counts
+- **Markdown files**: Keeps only headers with section line counts  
+- **Config files**: Shows only line count for YAML, JSON, TOML, INI, and other configuration files
+- **Text files**: Shows only line count for .txt, .log, .csv, and similar files
+- **Empty code files**: Shows "empty" instead of empty code blocks
 - **Supported languages**: Python, JavaScript, TypeScript, Java, C/C++, C#, Go, Rust, PHP, Ruby
 
 Example output with `--signatures`:
@@ -41,6 +44,18 @@ Example output with `--signatures`:
 def add_numbers(a, b): [lines:3]
 class Calculator: [lines:15]
 async def process_async(items: List[str]) -> bool: [lines:8]
+```
+
+**Config and text files in signatures mode:**
+
+```yaml
+[lines:25]
+```
+
+**Empty code files:**
+
+```python
+empty
 ```
 
 ### Planned Features
@@ -366,7 +381,17 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 ## Version History
 
-### v1.3.1 (Latest)
+### v1.3.4 (Latest)
+
+- **NEW**: Enhanced signature extraction mode with intelligent file handling
+- **NEW**: Config files (YAML, JSON, TOML, INI, etc.) show only line count in signatures mode
+- **NEW**: Text files (.txt, .log, .csv, etc.) show only line count in signatures mode  
+- **NEW**: Empty code files display "empty" instead of empty code blocks
+- **NEW**: Comprehensive test suite for improved signature processing
+- Improved file type detection and processing logic
+- Better handling of various file extensions in signatures mode
+
+### v1.3.1
 
 - **NEW**: Signature extraction mode with `--signatures` flag
 - **NEW**: Support for extracting function signatures from code files

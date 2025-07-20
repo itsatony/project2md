@@ -1,0 +1,12 @@
+database:
+  host: localhost
+  port: 5432
+  name: testdb
+  
+api:
+  version: 1.0
+  timeout: 30
+  
+logging:
+  level: info
+  file: app.log

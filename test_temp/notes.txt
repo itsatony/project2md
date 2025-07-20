@@ -1,0 +1,6 @@
+This is a simple text file
+with some content
+for testing purposes.
+
+It has multiple lines
+and some basic text.

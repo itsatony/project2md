@@ -26,6 +26,22 @@ class SignatureProcessor:
             '.php': self._process_php,
             '.rb': self._process_ruby,
         }
+        
+        # File types that should show line count only in signatures mode
+        self.line_count_only_extensions = {
+            '.yml', '.yaml',  # YAML files
+            '.json',          # JSON config files
+            '.toml',          # TOML config files
+            '.ini',           # INI config files
+            '.cfg',           # Config files
+            '.conf',          # Config files
+            '.config',        # Config files
+            '.txt',           # Text files
+            '.log',           # Log files
+            '.csv',           # CSV files
+            '.xml',           # XML files
+            '.properties',    # Properties files
+        }
     
     def process_file(self, file_path: Path, content: str) -> str:
         """Process a file and return its signature version."""
@@ -38,9 +54,17 @@ class SignatureProcessor:
         if suffix == '.md':
             return self._process_markdown(content)
         
+        # Handle files that should only show line count
+        if suffix in self.line_count_only_extensions:
+            return self._process_line_count_only(content)
+        
         # Handle code files
         if suffix in self.code_extensions:
-            return self.code_extensions[suffix](content)
+            processed = self.code_extensions[suffix](content)
+            # If no signatures found in code file, check if it's effectively empty
+            if not processed.strip():
+                return "empty"
+            return processed
         
         # For other file types, return original content
         return content
@@ -73,6 +97,11 @@ class SignatureProcessor:
                 result[-1] += f" [lines:{section_lines}]"
         
         return '\n'.join(result)
+    
+    def _process_line_count_only(self, content: str) -> str:
+        """Process files that should only show line count in signatures mode."""
+        line_count = len(content.split('\n'))
+        return f"[lines:{line_count}]"
     
     def _process_python(self, content: str) -> str:
         """Extract Python function and class signatures."""

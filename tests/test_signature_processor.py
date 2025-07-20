@@ -16,8 +16,15 @@ class TestSignatureProcessor:
     def test_process_file_unsupported_extension(self):
         """Test processing files with unsupported extensions."""
         content = "Some random content\nWith multiple lines"
-        result = self.processor.process_file(Path("test.txt"), content)
+        # .xyz extension is not in line_count_only_extensions, so should return original content
+        result = self.processor.process_file(Path("test.xyz"), content)
         assert result == content
+    
+    def test_process_file_txt_extension(self):
+        """Test processing .txt files which should show line count only."""
+        content = "Some random content\nWith multiple lines"
+        result = self.processor.process_file(Path("test.txt"), content)
+        assert result == "[lines:2]"
     
     def test_process_file_empty_content(self):
         """Test processing files with empty content."""
