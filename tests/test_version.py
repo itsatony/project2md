@@ -3,15 +3,38 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, MagicMock
 from project2md.cli import get_version
 
 
 class TestVersionExtraction:
-    """Test version extraction from pyproject.toml files."""
+    """Test version extraction from package metadata and pyproject.toml files."""
+
+    def test_get_version_from_package_metadata(self):
+        """Test version extraction from installed package metadata."""
+        with patch("importlib.metadata.version", return_value="2.1.0") as mock_version:
+            version = get_version()
+            assert version == "2.1.0"
+            mock_version.assert_called_once_with('project2md')
+
+    def test_get_version_fallback_to_pyproject_when_package_not_installed(self):
+        """Test fallback to pyproject.toml when package metadata fails."""
+        toml_content = """
+[project]
+name = "test-project"
+version = "1.2.3"
+description = "Test project"
+"""
+        
+        # Mock importlib.metadata to raise an exception (package not installed)
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=toml_content)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "1.2.3"
 
     def test_get_version_from_project_section(self):
-        """Test version extraction from [project] section."""
+        """Test version extraction from [project] section when package metadata fails."""
         toml_content = """
 [project]
 name = "test-project"
@@ -23,13 +46,15 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 """
         
-        with patch("builtins.open", mock_open(read_data=toml_content)):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                assert version == "1.2.3"
+        # Mock package metadata to fail, forcing fallback to pyproject.toml
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=toml_content)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "1.2.3"
 
     def test_get_version_from_poetry_section(self):
-        """Test version extraction from [tool.poetry] section."""
+        """Test version extraction from [tool.poetry] section when package metadata fails."""
         toml_content = """
 [tool.poetry]
 name = "test-project"
@@ -41,10 +66,12 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 """
         
-        with patch("builtins.open", mock_open(read_data=toml_content)):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                assert version == "2.4.6"
+        # Mock package metadata to fail, forcing fallback to pyproject.toml
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=toml_content)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "2.4.6"
 
     def test_get_version_prefers_project_over_poetry(self):
         """Test that [project] version is preferred over [tool.poetry] version."""
@@ -60,10 +87,11 @@ version = "2.0.0"
 description = "Test project"
 """
         
-        with patch("builtins.open", mock_open(read_data=toml_content)):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                assert version == "1.0.0"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=toml_content)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "1.0.0"
 
     def test_get_version_falls_back_to_poetry(self):
         """Test fallback to [tool.poetry] when [project] has no version."""
@@ -78,10 +106,11 @@ version = "3.1.4"
 description = "Test project"
 """
         
-        with patch("builtins.open", mock_open(read_data=toml_content)):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                assert version == "3.1.4"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=toml_content)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "3.1.4"
 
     def test_get_version_no_version_found(self):
         """Test when no version is found in either section."""
@@ -95,23 +124,26 @@ name = "test-project"
 description = "Test project"
 """
         
-        with patch("builtins.open", mock_open(read_data=toml_content)):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                assert version == "unknown"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=toml_content)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "unknown"
 
     def test_get_version_no_pyproject_file(self):
         """Test when no pyproject.toml file exists."""
-        with patch("pathlib.Path.exists", return_value=False):
-            version = get_version()
-            assert version == "unknown"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("pathlib.Path.exists", return_value=False):
+                version = get_version()
+                assert version == "unknown"
 
     def test_get_version_file_read_error(self):
         """Test when file reading raises an exception."""
-        with patch("pathlib.Path.exists", return_value=True):
-            with patch("builtins.open", side_effect=IOError("Cannot read file")):
-                version = get_version()
-                assert version == "unknown"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("pathlib.Path.exists", return_value=True):
+                with patch("builtins.open", side_effect=IOError("Cannot read file")):
+                    version = get_version()
+                    assert version == "unknown"
 
     def test_get_version_invalid_toml(self):
         """Test when TOML file is malformed."""
@@ -121,33 +153,28 @@ name = "test-project"
 version = "1.0.0
 """
         
-        with patch("builtins.open", mock_open(read_data=invalid_toml)):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                assert version == "unknown"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=invalid_toml)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "unknown"
 
     def test_get_version_empty_file(self):
         """Test when pyproject.toml file is empty."""
-        with patch("builtins.open", mock_open(read_data="")):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                assert version == "unknown"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data="")):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "unknown"
 
     def test_get_version_searches_multiple_paths(self):
-        """Test that the function searches multiple directory levels."""
+        """Test that the function searches multiple directory levels when package metadata fails."""
         toml_content = """
 [project]
 version = "4.5.6"
 """
         
-        # Mock to simulate finding pyproject.toml in the parent.parent directory (third search location)
-        def mock_exists(self):
-            path_str = str(self)
-            # Return True only for the third path that would be checked (parent.parent)
-            return path_str.endswith("pyproject.toml") and "parent.parent" in path_str
-        
         call_count = 0
-        original_exists = Path.exists
         
         def mock_exists_with_counter(self):
             nonlocal call_count
@@ -157,10 +184,12 @@ version = "4.5.6"
                 return False
             return True
         
-        with patch.object(Path, 'exists', mock_exists_with_counter):
-            with patch("builtins.open", mock_open(read_data=toml_content)):
-                version = get_version()
-                assert version == "4.5.6"
+        # Mock package metadata to fail, forcing fallback to pyproject.toml
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch.object(Path, 'exists', mock_exists_with_counter):
+                with patch("builtins.open", mock_open(read_data=toml_content)):
+                    version = get_version()
+                    assert version == "4.5.6"
 
     def test_get_version_with_real_pyproject_toml(self):
         """Test with the actual pyproject.toml file from the project."""
@@ -212,11 +241,12 @@ requests = "^2.25.0"
 line-length = 88
 """
         
-        with patch("builtins.open", mock_open(read_data=toml_content)):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                # Should prefer [project] version over [tool.poetry] version
-                assert version == "1.2.3-alpha.1"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=toml_content)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    # Should prefer [project] version over [tool.poetry] version
+                    assert version == "1.2.3-alpha.1"
 
     def test_get_version_nested_dict_access(self):
         """Test that nested dictionary access works correctly."""
@@ -228,10 +258,11 @@ poetry = {name = "test", version = "5.6.7"}
 name = "test-project"
 """
         
-        with patch("builtins.open", mock_open(read_data=toml_content)):
-            with patch("pathlib.Path.exists", return_value=True):
-                version = get_version()
-                assert version == "5.6.7"
+        with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
+            with patch("builtins.open", mock_open(read_data=toml_content)):
+                with patch("pathlib.Path.exists", return_value=True):
+                    version = get_version()
+                    assert version == "5.6.7"
 
 
 if __name__ == "__main__":

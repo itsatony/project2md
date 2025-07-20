@@ -19,9 +19,23 @@ from .messages import MessageHandler
 from .explicit_config_generator import generate_explicit_config
 
 def get_version() -> str:
-    """Get version from pyproject.toml."""
+    """Get version from package metadata or pyproject.toml."""
     try:
-        # Look for pyproject.toml in package directory and parent directories
+        # First try to get version from installed package metadata
+        try:
+            from importlib.metadata import version
+            return version('project2md')
+        except ImportError:
+            # Fallback for Python < 3.8
+            try:
+                from importlib_metadata import version
+                return version('project2md')
+            except ImportError:
+                pass
+        except Exception:
+            pass
+        
+        # Fallback to pyproject.toml for development (when package isn't installed)
         current_dir = Path(__file__).parent
         for path in [current_dir, current_dir.parent, current_dir.parent.parent]:
             pyproject_path = path / "pyproject.toml"

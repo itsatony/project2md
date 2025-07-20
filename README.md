@@ -381,7 +381,15 @@ Contributions are welcome! Please read our contributing guidelines before submit
 
 ## Version History
 
-### v1.3.4 (Latest)
+### v1.3.5 (Latest)
+
+- **FIX**: Version reporting now works correctly for installed packages
+- **FIX**: Version command now shows correct version from package metadata
+- **NEW**: Version is displayed in all console output and generated documentation
+- Improved version detection using importlib.metadata for installed packages
+- Enhanced fallback to pyproject.toml for development environments
+
+### v1.3.4
 
 - **NEW**: Enhanced signature extraction mode with intelligent file handling
 - **NEW**: Config files (YAML, JSON, TOML, INI, etc.) show only line count in signatures mode
