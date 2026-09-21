@@ -2,6 +2,35 @@
 
 Transform Git repositories into comprehensive Markdown documentation with intelligent file filtering and structure preservation.
 
+## Development
+
+There is no hosted CI: GitHub Actions is retired for this repository (operator
+decision, 2026-09-19) and the workflow that remained is parked, inert, in
+`.github/workflows-disabled/`. **`make ci-local` is the gate.** Run it before
+every commit.
+
+```bash
+make dev-setup     # create .venv and install the package + dev tools
+make ci-local      # THE GATE: isort/black check, ruff, mypy, pytest
+make fmt           # apply the formatters in place
+make coverage      # test suite with a coverage report
+make help          # all targets
+```
+
+`ci-local` fails if fewer than `MIN_TESTS` tests actually execute, so it cannot
+pass vacuously on a suite that has stopped collecting.
+
+### Releasing
+
+```bash
+git tag v1.4.0
+make release-check       # version <-> tag, CHANGELOG entry, build, twine check
+scripts/publish.sh v1.4.0
+```
+
+See `.github/workflows-disabled/README.md` for what the old publish workflow
+did and how to re-enable it.
+
 ## Overview
 
 project2md is a command-line tool that creates a single Markdown file containing the complete structure and content of a Git repository. It's designed to prepare repository content for Large Language Model (LLM) analysis while maintaining project structure and context.

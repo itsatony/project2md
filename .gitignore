@@ -175,3 +175,7 @@ project_summary.md
 # Poetry
 poetry.lock
 dist/
+
+# local gate artifacts
+.pytest-report.xml
+.ruff_cache/

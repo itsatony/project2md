@@ -1,6 +1,9 @@
 """Tests for improved signature processor functionality."""
-import pytest
+
 from pathlib import Path
+
+import pytest
+
 from project2md.signature_processor import SignatureProcessor
 
 
@@ -21,7 +24,7 @@ dependencies:
 config:
   debug: true
   port: 8080"""
-        
+
         result = self.processor.process_file(Path("config.yml"), yaml_content)
         assert result == "[lines:8]"
 
@@ -35,7 +38,7 @@ config:
     "click": "^8.0.0"
   }
 }"""
-        
+
         result = self.processor.process_file(Path("package.json"), json_content)
         assert result == "[lines:8]"
 
@@ -51,7 +54,7 @@ version = "1.0.0"
 
 [build-system]
 requires = ["poetry-core"]"""
-        
+
         result = self.processor.process_file(Path("pyproject.toml"), toml_content)
         assert result == "[lines:10]"
 
@@ -61,14 +64,14 @@ requires = ["poetry-core"]"""
 with multiple lines
 of content
 for testing purposes"""
-        
+
         result = self.processor.process_file(Path("notes.txt"), txt_content)
         assert result == "[lines:4]"
 
     def test_empty_code_file_shows_empty(self):
         """Test that empty code files show 'empty' instead of empty code block."""
         empty_content = ""
-        
+
         result = self.processor.process_file(Path("empty.py"), empty_content)
         assert result == ""
 
@@ -78,7 +81,7 @@ for testing purposes"""
 # Just a comment
     
 """
-        
+
         result = self.processor.process_file(Path("whitespace.py"), whitespace_content)
         assert result == "empty"
 
@@ -88,7 +91,7 @@ for testing purposes"""
 import os
 from pathlib import Path
 """
-        
+
         result = self.processor.process_file(Path("imports_only.py"), imports_only_content)
         assert result == "empty"
 
@@ -107,7 +110,7 @@ class MyClass:
     def get_value(self):
         return self.value
 """
-        
+
         result = self.processor.process_file(Path("code.py"), code_content)
         assert "def hello_world():" in result
         assert "class MyClass:" in result
@@ -117,7 +120,7 @@ class MyClass:
         """Test that unknown file types return original content."""
         unknown_content = """This is some unknown file content
 with multiple lines"""
-        
+
         result = self.processor.process_file(Path("unknown.xyz"), unknown_content)
         assert result == unknown_content
 
@@ -134,7 +137,7 @@ Even more content
 
 ## Section 2
 Final content"""
-        
+
         result = self.processor.process_file(Path("test.md"), md_content)
         assert "# Main Title [lines:2]" in result
         assert "## Section 1 [lines:2]" in result
@@ -158,11 +161,11 @@ Final content"""
             (".xml", "<root><item>value</item></root>"),
             (".properties", "key=value\nother=data"),
         ]
-        
+
         for ext, content in extensions_and_content:
             file_path = Path(f"test{ext}")
             result = self.processor.process_file(file_path, content)
-            expected_lines = len(content.split('\n'))
+            expected_lines = len(content.split("\n"))
             assert result == f"[lines:{expected_lines}]", f"Failed for {ext}"
 
     def test_empty_line_count_only_file(self):

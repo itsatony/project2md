@@ -1,9 +1,10 @@
 """Tests for version extraction functionality."""
-import pytest
-import tempfile
-import shutil
+
 from pathlib import Path
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import mock_open, patch
+
+import pytest
+
 from project2md.cli import get_version
 
 
@@ -15,7 +16,7 @@ class TestVersionExtraction:
         with patch("importlib.metadata.version", return_value="2.1.0") as mock_version:
             version = get_version()
             assert version == "2.1.0"
-            mock_version.assert_called_once_with('project2md')
+            mock_version.assert_called_once_with("project2md")
 
     def test_get_version_fallback_to_pyproject_when_package_not_installed(self):
         """Test fallback to pyproject.toml when package metadata fails."""
@@ -25,7 +26,7 @@ name = "test-project"
 version = "1.2.3"
 description = "Test project"
 """
-        
+
         # Mock importlib.metadata to raise an exception (package not installed)
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=toml_content)):
@@ -45,7 +46,7 @@ description = "Test project"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 """
-        
+
         # Mock package metadata to fail, forcing fallback to pyproject.toml
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=toml_content)):
@@ -65,7 +66,7 @@ description = "Test project"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 """
-        
+
         # Mock package metadata to fail, forcing fallback to pyproject.toml
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=toml_content)):
@@ -86,7 +87,7 @@ name = "test-project"
 version = "2.0.0"
 description = "Test project"
 """
-        
+
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=toml_content)):
                 with patch("pathlib.Path.exists", return_value=True):
@@ -105,7 +106,7 @@ name = "test-project"
 version = "3.1.4"
 description = "Test project"
 """
-        
+
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=toml_content)):
                 with patch("pathlib.Path.exists", return_value=True):
@@ -123,7 +124,7 @@ description = "Test project"
 name = "test-project"
 description = "Test project"
 """
-        
+
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=toml_content)):
                 with patch("pathlib.Path.exists", return_value=True):
@@ -141,7 +142,7 @@ description = "Test project"
         """Test when file reading raises an exception."""
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("pathlib.Path.exists", return_value=True):
-                with patch("builtins.open", side_effect=IOError("Cannot read file")):
+                with patch("builtins.open", side_effect=OSError("Cannot read file")):
                     version = get_version()
                     assert version == "unknown"
 
@@ -152,7 +153,7 @@ description = "Test project"
 name = "test-project"
 version = "1.0.0
 """
-        
+
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=invalid_toml)):
                 with patch("pathlib.Path.exists", return_value=True):
@@ -173,20 +174,18 @@ version = "1.0.0
 [project]
 version = "4.5.6"
 """
-        
+
         call_count = 0
-        
+
         def mock_exists_with_counter(self):
             nonlocal call_count
             call_count += 1
             # First two calls return False, third returns True
-            if call_count <= 2:
-                return False
-            return True
-        
+            return not call_count <= 2
+
         # Mock package metadata to fail, forcing fallback to pyproject.toml
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
-            with patch.object(Path, 'exists', mock_exists_with_counter):
+            with patch.object(Path, "exists", mock_exists_with_counter):
                 with patch("builtins.open", mock_open(read_data=toml_content)):
                     version = get_version()
                     assert version == "4.5.6"
@@ -195,16 +194,19 @@ version = "4.5.6"
         """Test with the actual pyproject.toml file from the project."""
         # This test uses the real pyproject.toml file to ensure it works correctly
         version = get_version()
-        
+
         # The version should not be "unknown" if the real file exists and is readable
         assert version != "unknown"
         assert isinstance(version, str)
         assert len(version) > 0
-        
+
         # Check that it matches semantic versioning pattern (x.y.z)
         import re
-        semver_pattern = r'^\d+\.\d+\.\d+.*$'
-        assert re.match(semver_pattern, version), f"Version '{version}' doesn't match semantic versioning pattern"
+
+        semver_pattern = r"^\d+\.\d+\.\d+.*$"
+        assert re.match(
+            semver_pattern, version
+        ), f"Version '{version}' doesn't match semantic versioning pattern"
 
     def test_get_version_complex_toml_structure(self):
         """Test with a more complex TOML structure."""
@@ -240,7 +242,7 @@ requests = "^2.25.0"
 [tool.black]
 line-length = 88
 """
-        
+
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=toml_content)):
                 with patch("pathlib.Path.exists", return_value=True):
@@ -257,7 +259,7 @@ poetry = {name = "test", version = "5.6.7"}
 [project]
 name = "test-project"
 """
-        
+
         with patch("importlib.metadata.version", side_effect=Exception("Package not found")):
             with patch("builtins.open", mock_open(read_data=toml_content)):
                 with patch("pathlib.Path.exists", return_value=True):

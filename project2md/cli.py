@@ -1,22 +1,23 @@
 # project2md/cli.py
-import sys
-from pathlib import Path
-from typing import List, Optional
-import click
-from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskID
 import logging
-import toml
+import sys
 from datetime import datetime
+from pathlib import Path
 
-from .config import Config, ConfigError, OutputFormat
-from .git import GitHandler
-from .walker import FileSystemWalker
-from .formatters.factory import get_formatter  # Single formatter import
-from .formatters.base import BaseFormatter
-from .stats import StatsCollector
-from .messages import MessageHandler
+import click
+import toml
+from rich.console import Console
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
+
+from .config import Config, ConfigError
 from .explicit_config_generator import generate_explicit_config
+from .formatters.base import BaseFormatter
+from .formatters.factory import get_formatter  # Single formatter import
+from .git import GitHandler
+from .messages import MessageHandler
+from .stats import StatsCollector
+from .walker import FileSystemWalker
+
 
 def get_version() -> str:
     """Get version from package metadata or pyproject.toml."""
@@ -24,31 +25,39 @@ def get_version() -> str:
         # First try to get version from installed package metadata
         try:
             from importlib.metadata import version
-            return version('project2md')
+
+            return version("project2md")
         except ImportError:
             # Fallback for Python < 3.8
             try:
-                from importlib_metadata import version
-                return version('project2md')
+                from importlib_metadata import version as backport_version
+
+                return backport_version("project2md")
             except ImportError:
                 pass
         except Exception:
             pass
-        
+
         # Fallback to pyproject.toml for development (when package isn't installed)
         current_dir = Path(__file__).parent
         for path in [current_dir, current_dir.parent, current_dir.parent.parent]:
             pyproject_path = path / "pyproject.toml"
             if pyproject_path.exists():
-                with open(pyproject_path, 'r') as f:
+                with open(pyproject_path) as f:
                     pyproject_data = toml.load(f)
                     # Try both [project] and [tool.poetry] sections
-                    version = (pyproject_data.get('project', {}).get('version') or 
-                              pyproject_data.get('tool', {}).get('poetry', {}).get('version'))
-                    return version or 'unknown'
+                    # Not named `version`: that is the imported
+                    # importlib.metadata.version above, and rebinding it here
+                    # makes the whole function's name resolution depend on
+                    # which branch ran.
+                    declared = pyproject_data.get("project", {}).get(
+                        "version"
+                    ) or pyproject_data.get("tool", {}).get("poetry", {}).get("version")
+                    return declared or "unknown"
         return "unknown"
     except Exception:
         return "unknown"
+
 
 VERSION = get_version()
 
@@ -56,6 +65,7 @@ VERSION = get_version()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 console = Console()
+
 
 def setup_progress() -> Progress:
     """Create a Rich progress bar instance."""
@@ -67,51 +77,65 @@ def setup_progress() -> Progress:
         console=console,
     )
 
+
 def get_run_info(config: Config) -> dict:
     """Generate run information for output."""
     return {
-        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'version': VERSION,
-        'signatures_mode': getattr(config, 'signatures_mode', False),
-        'output_format': config.output.format.value,  # Convert enum to string
-        'pypi_url': 'https://pypi.org/project/project2md',
-        'github_url': 'https://github.com/itsatony/project2md'
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "version": VERSION,
+        "signatures_mode": getattr(config, "signatures_mode", False),
+        "output_format": config.output.format.value,  # Convert enum to string
+        "pypi_url": "https://pypi.org/project/project2md",
+        "github_url": "https://github.com/itsatony/project2md",
     }
 
-@click.group(invoke_without_command=True, help=f"Project2MD v{VERSION} - Transform repositories into comprehensive Markdown documentation.")
+
+@click.group(
+    invoke_without_command=True,
+    help=f"Project2MD v{VERSION} - Transform repositories into comprehensive Markdown documentation.",
+)
 @click.pass_context
 def cli(ctx):
     if not ctx.invoked_subcommand:
         console.print(f"[bold blue]Project2MD v{VERSION}[/bold blue]")
         console.print("Transform repositories into comprehensive Markdown documentation.\n")
-        
+
         console.print("[bold]Quick Start:[/bold]")
         console.print("  [green]project2md init[/green]                    # Create default config")
-        console.print("  [green]project2md process[/green]                 # Process current directory")
-        console.print("  [green]project2md process --signatures[/green]    # Extract only function signatures")
-        console.print("  [green]project2md process --repo=URL[/green]      # Process remote repository\n")
-        
+        console.print(
+            "  [green]project2md process[/green]                 # Process current directory"
+        )
+        console.print(
+            "  [green]project2md process --signatures[/green]    # Extract only function signatures"
+        )
+        console.print(
+            "  [green]project2md process --repo=URL[/green]      # Process remote repository\n"
+        )
+
         console.print("[bold]Available Commands:[/bold]")
         console.print("  [cyan]init[/cyan]        Initialize project with default configuration")
         console.print("  [cyan]process[/cyan]     Process a repository or directory")
         console.print("  [cyan]explicit[/cyan]    Generate explicit configuration file")
         console.print("  [cyan]version[/cyan]     Show version information\n")
-        
+
         console.print("[bold]Key Features:[/bold]")
-        console.print("  • [yellow]--signatures[/yellow]  Extract only function signatures and headers")
+        console.print(
+            "  • [yellow]--signatures[/yellow]  Extract only function signatures and headers"
+        )
         console.print("  • [yellow]--format[/yellow]      Output in markdown, json, or yaml")
         console.print("  • [yellow]--config[/yellow]      Use custom configuration file")
         console.print("  • [yellow]--repo[/yellow]        Process remote Git repositories\n")
-        
+
         console.print("Use [green]project2md COMMAND --help[/green] for detailed options.")
         ctx.exit()
+
 
 @cli.command()
 @click.option(
     "--root-dir",
     type=click.Path(file_okay=False, dir_okay=True),
     help="Root directory for initialization (defaults to current directory)",
-    default="."
+    default=".",
 )
 @click.option(
     "--force",
@@ -121,7 +145,7 @@ def cli(ctx):
 def init(root_dir: str, force: bool):
     """Initialize project2md by creating a default configuration file."""
     try:
-        target_path = Path(root_dir) / '.project2md.yml'
+        target_path = Path(root_dir) / ".project2md.yml"
         if target_path.exists() and not force:
             console.print(f"[yellow]Configuration file already exists at {target_path}[/yellow]")
             console.print("[yellow]Use --force to overwrite[/yellow]")
@@ -133,6 +157,7 @@ def init(root_dir: str, force: bool):
     except Exception as e:
         console.print(f"[red]Error creating configuration: {e}[/red]")
         sys.exit(1)
+
 
 @cli.command()
 @click.option(
@@ -196,8 +221,8 @@ def init(root_dir: str, force: bool):
 )
 @click.option(
     "--format",
-    type=click.Choice(['markdown', 'json', 'yaml'], case_sensitive=False),
-    default='markdown',
+    type=click.Choice(["markdown", "json", "yaml"], case_sensitive=False),
+    default="markdown",
     help="Output format (default: markdown)",
 )
 @click.option(
@@ -206,44 +231,39 @@ def init(root_dir: str, force: bool):
     help="Extract only function signatures from code files and headers from markdown files",
 )
 def process(
-    repo_url: Optional[str],
-    root_dir: Optional[str],
+    repo_url: str | None,
+    root_dir: str | None,
     target_dir: str,
     output_file: str,
-    config_file: Optional[str],
-    include: List[str],
-    exclude: List[str],
-    include_extra: List[str],
-    exclude_extra: List[str],
+    config_file: str | None,
+    include: list[str],
+    exclude: list[str],
+    include_extra: list[str],
+    exclude_extra: list[str],
     force: bool,
-    branch: Optional[str],
+    branch: str | None,
     format: str,
     signatures: bool,
 ) -> None:
     """
     Transform Git repositories or local directories into comprehensive Markdown documentation.
-    
+
     If neither repository URL nor root directory is provided, processes the current directory.
     """
     console = Console()
     message_handler = MessageHandler(console)
-    
+
     try:
         # Determine working directory
-        working_dir = Path(root_dir) if root_dir else (
-            Path(target_dir) if repo_url else Path.cwd()
-        )
+        working_dir = Path(root_dir) if root_dir else (Path(target_dir) if repo_url else Path.cwd())
 
         # Load configuration
         message_handler.info("Loading configuration...")
-        config = load_configuration(config_file, {
-            **locals(),
-            'target_dir': str(working_dir)
-        })
-        
+        config = load_configuration(config_file, {**locals(), "target_dir": str(working_dir)})
+
         # Update target directory in config
         config.target_dir = working_dir
-        
+
         # Set signatures mode in config
         config.signatures_mode = signatures
 
@@ -265,7 +285,7 @@ def process(
                 stats_collector,
                 progress,
                 force,
-                message_handler
+                message_handler,
             )
 
             # Print completion message with statistics
@@ -279,12 +299,13 @@ def process(
         logger.exception("Unexpected error occurred")
         sys.exit(1)
 
+
 @cli.command()
 @click.option(
     "--directory",
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
     default=".",
-    help="Directory to analyze."
+    help="Directory to analyze.",
 )
 def explicit(directory):
     """
@@ -292,12 +313,14 @@ def explicit(directory):
     Uses the same config logic (includes/excludes) as 'process'.
     """
     try:
-        from .config import Config
         # Load config from project2md.yml or defaults
-        config = load_configuration(None, {
-            'repo_url': None,
-            'target_dir': directory,
-        })
+        config = load_configuration(
+            None,
+            {
+                "repo_url": None,
+                "target_dir": directory,
+            },
+        )
         output_path = Path(directory) / "explicit.config.project2md.yml"
 
         # Call the improved function using the loaded config
@@ -307,23 +330,25 @@ def explicit(directory):
         console.print(f"[red]Error generating explicit config: {e}[/red]")
         sys.exit(1)
 
+
 @cli.command()
 def version():
     """Show the current project2md version."""
     click.echo(f"project2md version {VERSION}")
 
-def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
+
+def load_configuration(config_file: str | None, cli_args: dict) -> Config:
     """Load and merge configuration from file and CLI arguments."""
     try:
         config = None
-        
+
         if config_file:
             # User explicitly specified a config file
             config = Config.from_yaml(config_file)
             logger.info(f"Using configuration from {config_file}")
         else:
             # Look for config in current working directory
-            cwd_config = Path.cwd() / '.project2md.yml'
+            cwd_config = Path.cwd() / ".project2md.yml"
             if cwd_config.exists():
                 config = Config.from_yaml(cwd_config)
                 logger.info(f"Using configuration from {cwd_config}")
@@ -333,26 +358,38 @@ def load_configuration(config_file: Optional[str], cli_args: dict) -> Config:
 
         # Apply smart defaults if no patterns configured
         config.apply_smart_defaults()
-        
+
         # Load .gitignore patterns only for local directories
-        if not cli_args.get('repo_url'):
+        if not cli_args.get("repo_url"):
             config._load_gitignore_patterns(Path.cwd())
-        
+
         # Merge CLI arguments
         filtered_args = {
-            k: v for k, v in cli_args.items()
-            if k in ['repo_url', 'target_dir', 'output_file', 'include', 'exclude', 'branch', 'format', 'signatures']
+            k: v
+            for k, v in cli_args.items()
+            if k
+            in [
+                "repo_url",
+                "target_dir",
+                "output_file",
+                "include",
+                "exclude",
+                "branch",
+                "format",
+                "signatures",
+            ]
             and v is not None
         }
         config.merge_cli_args(filtered_args)
-        
+
         # Validate the final configuration
         config.validate()
-        
+
         return config
-        
+
     except Exception as e:
-        raise ConfigError(f"Failed to load configuration: {e}")
+        raise ConfigError(f"Failed to load configuration: {e}") from e
+
 
 def process_repository(
     config: Config,
@@ -362,11 +399,11 @@ def process_repository(
     stats_collector: StatsCollector,
     progress: Progress,
     force: bool,
-    message_handler: MessageHandler
+    message_handler: MessageHandler,
 ) -> None:
     """
     Process a repository and generate documentation.
-    
+
     Args:
         config: Configuration object
         git_handler: Git handler instance
@@ -377,28 +414,28 @@ def process_repository(
         force: Force processing flag
         message_handler: Message handler instance
     """
-    
+
     # Setup progress tracking
     clone_task = progress.add_task("Cloning repository...", total=1, visible=bool(config.repo_url))
     walk_task = progress.add_task("Analyzing files...", total=None)
     stats_task = progress.add_task("Collecting statistics...", total=None)
     format_task = progress.add_task("Generating documentation...", total=None)
-    
+
     try:
         # Handle repository
         repo_path = git_handler.prepare_repository(force)
         progress.update(clone_task, completed=1)
-        
+
         # Ensure output directory exists
         config.output_file.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Get repository information
         repo_info = git_handler.get_repo_info()
-        
+
         # Collect files
         files = walker.collect_files(repo_path)
         progress.update(walk_task, total=len(files), completed=0)
-        
+
         # Process files and collect statistics
         processed_files = []
         for file in files:
@@ -407,20 +444,21 @@ def process_repository(
                 # Apply signature processing if enabled
                 if config.signatures_mode and content is not None:
                     from .signature_processor import SignatureProcessor
+
                     processor = SignatureProcessor()
                     content = processor.process_file(file, content)
-                
+
                 stats_collector.process_file(file, content)
                 processed_files.append((file, content))
             progress.update(walk_task, advance=1)
-            
+
         progress.update(stats_task, total=1, completed=0)
-        stats = stats_collector.get_stats(repo_info.get('branch', 'unknown'))
+        stats = stats_collector.get_stats(repo_info.get("branch", "unknown"))
         progress.update(stats_task, completed=1)
-        
+
         # Get run information
         run_info = get_run_info(config)
-        
+
         # Generate output using the passed formatter
         progress.update(format_task, total=1, completed=0)
         formatter.generate_output(
@@ -428,33 +466,37 @@ def process_repository(
             processed_files,
             stats,
             config.output_file,
-            run_info  # Pass run info to formatter
+            run_info,  # Pass run info to formatter
         )
         progress.update(format_task, completed=1)
-        
+
         # Print summary
         console.print("\n[bold green]Documentation generated successfully![/bold green]")
         console.print(f"[green]Output file: {config.output_file}[/green]")
-        
+
         if config.signatures_mode:
-            console.print("[yellow]ℹ️  Signatures mode: Only function signatures and headers extracted[/yellow]")
-        
+            console.print(
+                "[yellow]ℹ️  Signatures mode: Only function signatures and headers extracted[/yellow]"
+            )
+
         # Print quick stats summary
         if config.general.stats_in_output:
             console.print("\n[bold blue]Quick Statistics:[/bold blue]")
             console.print(f"  • Total Files: {stats['total_files']}")
-            console.print(f"  • Text Files: {stats['text_files']} ({stats['text_files_percentage']}%)")
+            console.print(
+                f"  • Text Files: {stats['text_files']} ({stats['text_files_percentage']}%)"
+            )
             console.print(f"  • Repository Size: {stats['repo_size']}")
             console.print(f"  • Current Branch: {stats['branch']}")
-            
-            if stats['file_types']:
+
+            if stats["file_types"]:
                 console.print("\n[blue]Top File Types:[/blue]")
-                for ext, count in list(stats['file_types'].items())[:3]:
+                for ext, count in list(stats["file_types"].items())[:3]:
                     console.print(f"  • {ext}: {count} files")
-                    
-        
+
     except Exception as e:
-        raise click.ClickException(str(e))
+        raise click.ClickException(str(e)) from e
+
 
 def main():
     try:
@@ -469,6 +511,7 @@ def main():
         with click.Context(cli) as ctx:
             console.print(ctx.command.get_help(ctx))
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

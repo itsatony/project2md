@@ -1,11 +1,12 @@
 """
 Pytest configuration and shared fixtures.
 """
-import pytest
-import tempfile
+
 import shutil
+import tempfile
 from pathlib import Path
-from unittest.mock import Mock
+
+import pytest
 
 from project2md.config import Config
 
@@ -35,13 +36,13 @@ def mock_git_repo(temp_dir):
     # Create git directory
     git_dir = temp_dir / ".git"
     git_dir.mkdir()
-    
+
     # Create some sample files
     (temp_dir / "README.md").write_text("# Test Repository\n\nThis is a test.")
     (temp_dir / "main.py").write_text("def hello():\n    print('Hello')\n")
     (temp_dir / "src").mkdir()
     (temp_dir / "src" / "utils.py").write_text("def util_func():\n    return True\n")
-    
+
     return temp_dir
 
 
@@ -76,7 +77,7 @@ def nested_function():
 @pytest.fixture
 def sample_markdown():
     """Sample Markdown content for testing."""
-    return '''# Main Title
+    return """# Main Title
 
 This is the introduction.
 
@@ -91,13 +92,13 @@ More detailed content.
 ## Section 2
 
 Final section content.
-'''
+"""
 
 
 @pytest.fixture
 def sample_javascript():
-    """Sample JavaScript code for testing.""" 
-    return '''
+    """Sample JavaScript code for testing."""
+    return """
 function regularFunction(a, b) {
     return a + b;
 }
@@ -121,4 +122,4 @@ async function asyncFunction() {
     await someOperation();
     return result;
 }
-'''
+"""
